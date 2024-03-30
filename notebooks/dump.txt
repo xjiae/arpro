@@ -1,0 +1,81 @@
+[I 2024-03-29 19:57:51.386 ServerApp] jupyter_lsp | extension was successfully linked.
+[I 2024-03-29 19:57:51.388 ServerApp] jupyter_server_terminals | extension was successfully linked.
+[I 2024-03-29 19:57:51.390 ServerApp] jupyterlab | extension was successfully linked.
+[I 2024-03-29 19:57:51.392 ServerApp] notebook | extension was successfully linked.
+[I 2024-03-29 19:57:51.501 ServerApp] notebook_shim | extension was successfully linked.
+[I 2024-03-29 19:57:51.535 ServerApp] notebook_shim | extension was successfully loaded.
+[I 2024-03-29 19:57:51.536 ServerApp] jupyter_lsp | extension was successfully loaded.
+[I 2024-03-29 19:57:51.537 ServerApp] jupyter_server_terminals | extension was successfully loaded.
+[I 2024-03-29 19:57:51.538 LabApp] JupyterLab extension loaded from /home/antonxue/lib/miniconda3/envs/arpro/lib/python3.11/site-packages/jupyterlab
+[I 2024-03-29 19:57:51.538 LabApp] JupyterLab application directory is /home/antonxue/lib/miniconda3/envs/arpro/share/jupyter/lab
+[I 2024-03-29 19:57:51.538 LabApp] Extension Manager is 'pypi'.
+[I 2024-03-29 19:57:51.545 ServerApp] jupyterlab | extension was successfully loaded.
+[I 2024-03-29 19:57:51.546 ServerApp] notebook | extension was successfully loaded.
+[I 2024-03-29 19:57:51.546 ServerApp] Serving notebooks from local directory: /home/antonxue/foo/arpro/notebooks
+[I 2024-03-29 19:57:51.546 ServerApp] Jupyter Server 2.13.0 is running at:
+[I 2024-03-29 19:57:51.546 ServerApp] http://localhost:7778/tree?token=ad84654a308ae1428b23383bb96cca9fe8d0ca1ef94a5c6d
+[I 2024-03-29 19:57:51.546 ServerApp]     http://127.0.0.1:7778/tree?token=ad84654a308ae1428b23383bb96cca9fe8d0ca1ef94a5c6d
+[I 2024-03-29 19:57:51.546 ServerApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[W 2024-03-29 19:57:51.548 ServerApp] No web browser found: Error('could not locate runnable browser').
+[C 2024-03-29 19:57:51.549 ServerApp] 
+    
+    To access the server, open this file in a browser:
+        file:///home/antonxue/.local/share/jupyter/runtime/jpserver-2492141-open.html
+    Or copy and paste one of these URLs:
+        http://localhost:7778/tree?token=ad84654a308ae1428b23383bb96cca9fe8d0ca1ef94a5c6d
+        http://127.0.0.1:7778/tree?token=ad84654a308ae1428b23383bb96cca9fe8d0ca1ef94a5c6d
+[I 2024-03-29 19:57:51.557 ServerApp] Skipped non-installed server(s): bash-language-server, dockerfile-language-server-nodejs, javascript-typescript-langserver, jedi-language-server, julia-language-server, pyright, python-language-server, python-lsp-server, r-languageserver, sql-language-server, texlab, typescript-language-server, unified-language-server, vscode-css-languageserver-bin, vscode-html-languageserver-bin, vscode-json-languageserver-bin, yaml-language-server
+[I 2024-03-29 19:58:30.747 ServerApp] Creating new notebook in 
+[I 2024-03-29 19:58:30.930 ServerApp] Saving file at /Untitled.ipynb
+[I 2024-03-29 19:58:30.962 ServerApp] Kernel started: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 19:58:31.254 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 19:58:31.305 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 19:58:31.329 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 19:58:31.439 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 19:58:31.667 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:00:38.035 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 20:00:52.838 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:00:52.854 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:01:22.792 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:01:22.879 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:02:25.541 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:02:25.614 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:02:38.082 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 20:03:04.748 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:03:04.765 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:03:37.043 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:03:37.086 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:04:35.583 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:04:35.696 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:04:38.123 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 20:04:57.770 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:04:57.814 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:05:32.848 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:05:32.937 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:06:19.466 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:06:19.531 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:06:38.166 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 20:08:05.229 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:08:05.343 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:08:29.025 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:08:29.065 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:08:38.217 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 20:08:49.430 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:08:49.544 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:10:38.281 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 20:20:46.513 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:20:46.812 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:24:11.456 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 20:24:11.549 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 20:24:46.747 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 20:26:47.743 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 21:20:15.755 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 21:22:17.594 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 21:32:58.450 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-03-29 21:32:58.459 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:3315ae01-9a0d-4128-94a8-6c574b413071
+[I 2024-03-29 21:32:58.465 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-29 21:32:58.465 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:3315ae01-9a0d-4128-94a8-6c574b413071
+[I 2024-03-29 21:34:24.078 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 21:36:24.141 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 21:38:24.188 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-29 22:18:15.746 ServerApp] Saving file at /vae_mvtec_test.ipynb
