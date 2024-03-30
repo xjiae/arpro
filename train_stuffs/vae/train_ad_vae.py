@@ -25,7 +25,7 @@ class VaeADTrainingConfig:
     do_save: bool = True
     output_dir: Optional[str] = None
     vae_in_channels: int = 3
-    vae_ch: int = 3
+    vae_ch: int = 64
     vae_latent_channels: int = 256
     warmup: float = 0.1
 
@@ -40,7 +40,8 @@ def run_one_epoch(
     _ = model.train() if train_or_eval == "train" else model.eval()
     device = next(model.parameters()).device
 
-    num_dones, running_loss = 0, 0.
+    num_dones = 0
+    running_recon_loss, running_kldiv_loss, running_loss = 0., 0., 0.
     pbar = tqdm(dataloader)
 
     for i, batch in enumerate(pbar):
@@ -49,19 +50,25 @@ def run_one_epoch(
         out = model(x)
 
         xhat, mu, logvar = out.other["xhat"], out.other["mu"], out.other["logvar"]
-        loss = torch.norm(x - xhat, p=2) ** 2
-        loss += 0.5 * torch.sum(-1 - logvar + torch.exp(logvar) + mu**2)
-
-        if train_or_eval == "train":
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
+        with torch.set_grad_enabled(train_or_eval == "train"):
+            recon_loss = torch.mean(torch.norm((x - xhat).flatten(1), p=2) ** 2)
+            kldiv_loss = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
+            loss = recon_loss + kldiv_loss
+            if train_or_eval == "train":
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
 
         num_dones += x.size(0)
-        running_loss += loss
+        running_recon_loss += recon_loss * x.size(0)
+        running_kldiv_loss += kldiv_loss * x.size(0)
+        running_loss += loss * x.size(0)
         avg_loss = running_loss / num_dones
+        avg_recon_loss = running_recon_loss / num_dones
+        avg_kldiv_loss = running_kldiv_loss / num_dones
         desc = "[train] " if train_or_eval == "train" else "[eval]  "
-        desc += f"num_dones {num_dones}, loss {avg_loss:.4f}"
+        desc += f"num_dones {num_dones}, "
+        desc += f"loss {avg_loss:.3f} (recon {avg_recon_loss:.3f}, kldiv {avg_kldiv_loss:.3f})"
         pbar.set_description(desc)
 
     return {
@@ -118,7 +125,7 @@ def train_vae_ad(config: VaeADTrainingConfig):
     for epoch in range(1, config.num_epochs+1):
         print(f"epoch: {epoch}/{config.num_epochs}, lr: {lr_scheduler.get_last_lr()[0]:.6f}")
         train_stats = run_one_epoch(model, train_dataloader, "train", optimizer)
-        eval_stats = run_one_epoch(model, eval_dataloader, "eval", optimizer)
+        eval_stats = run_one_epoch(model, eval_dataloader, "eval")
         lr_scheduler.step()
 
         save_dict = {
@@ -137,7 +144,7 @@ def train_vae_ad(config: VaeADTrainingConfig):
         if best_loss is None or this_loss < best_loss:
             best_save_dict = save_dict
             delta = 0. if best_loss is None else (best_loss - this_loss)
-            print(f"New best {this_loss:.4f}, delta {delta:.4f}")
+            print(f"New best {this_loss:.3f}, delta {delta:.3f}")
             best_loss = this_loss
             if config.do_save:
                 torch.save(save_dict, best_saveto)
