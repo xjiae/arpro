@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--num_epochs", type=int, default=100)
     parser.add_argument("--seed", type=int, default=1234)
-    parser.add_argument("--batch_size", type=int, default=16)
+    parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--cuda", default=False, action="store_true")
 
     parser.add_argument("--output_dir",

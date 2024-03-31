@@ -24,35 +24,35 @@ class VaeADTrainingConfig:
     use_cuda: bool
     do_save: bool = True
     output_dir: Optional[str] = None
-    vae_in_channels: int = 3
-    vae_ch: int = 64
-    vae_latent_channels: int = 256
+    image_channels: int = 3
     warmup: float = 0.1
+    eval_every: int = 5
 
 
 def run_one_epoch(
     model,
     dataloader,
-    train_or_eval = None,
+    train_or_eval: str,
+    config: VaeADTrainingConfig,
     optimizer = None,
 ):
     assert train_or_eval in ["train", "eval"]
     _ = model.train() if train_or_eval == "train" else model.eval()
     device = next(model.parameters()).device
 
-    num_dones = 0
-    running_recon_loss, running_kldiv_loss, running_loss = 0., 0., 0.
+    num_dones, acc_loss, acc_recon_loss, acc_kldiv_loss = 0, 0., 0., 0.
     pbar = tqdm(dataloader)
 
     for i, batch in enumerate(pbar):
         x, m, y = batch
         x, m, y = x.to(device), m.to(device), y.to(device)
+        x = 2*x - 1 # Scale to [-1,+1]
         out = model(x)
 
-        xhat, mu, logvar = out.other["xhat"], out.other["mu"], out.other["logvar"]
         with torch.set_grad_enabled(train_or_eval == "train"):
-            recon_loss = torch.mean(torch.norm((x - xhat).flatten(1), p=2) ** 2)
-            kldiv_loss = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
+            score, mu, logvar = out.score, out.other["mu"], out.other["logvar"]
+            recon_loss = out.score.mean()
+            kldiv_loss = -0.5 * torch.mean(1 + logvar - (mu**2) - logvar.exp())
             loss = recon_loss + kldiv_loss
             if train_or_eval == "train":
                 loss.backward()
@@ -60,26 +60,31 @@ def run_one_epoch(
                 optimizer.zero_grad()
 
         num_dones += x.size(0)
-        running_recon_loss += recon_loss * x.size(0)
-        running_kldiv_loss += kldiv_loss * x.size(0)
-        running_loss += loss * x.size(0)
-        avg_loss = running_loss / num_dones
-        avg_recon_loss = running_recon_loss / num_dones
-        avg_kldiv_loss = running_kldiv_loss / num_dones
+        acc_loss += loss * x.size(0)
+        acc_recon_loss += recon_loss * x.size(0)
+        acc_kldiv_loss += kldiv_loss * x.size(0)
+        avg_loss = acc_loss / num_dones
+        avg_recon_loss = acc_recon_loss / num_dones
+        avg_kldiv_loss = acc_kldiv_loss / num_dones
         desc = "[train] " if train_or_eval == "train" else "[eval]  "
-        desc += f"num_dones {num_dones}, "
-        desc += f"loss {avg_loss:.3f} (recon {avg_recon_loss:.3f}, kldiv {avg_kldiv_loss:.3f})"
+        desc += f"num_dones {num_dones}, loss {avg_loss:.3f} "
+        desc += f"(recon {avg_recon_loss:.3f}, kldiv {avg_kldiv_loss:.3f})"
         pbar.set_description(desc)
 
     return {
         "model": model,
-        "loss": avg_loss
+        "loss": avg_loss,
+        "recon_loss": avg_recon_loss,
+        "kldiv_loss": avg_kldiv_loss,
     }
 
 
 def train_vae_ad(config: VaeADTrainingConfig):
     """ Set up the models, dataloaders, optimizers, etc and start training """
-    model = VaeADModel(config.vae_in_channels, config.vae_ch, config.vae_latent_channels)
+    model = VaeADModel(
+        in_channels=config.image_channels,
+        out_channels = config.image_channels
+    )
     if config.use_cuda:
         model.cuda()
 
@@ -99,7 +104,11 @@ def train_vae_ad(config: VaeADTrainingConfig):
         split = "test"
     )
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr = config.lr,
+    )
+
     warmup_epochs = int(config.num_epochs * config.warmup)
     decay_epochs = config.num_epochs - warmup_epochs
 
@@ -124,14 +133,15 @@ def train_vae_ad(config: VaeADTrainingConfig):
 
     for epoch in range(1, config.num_epochs+1):
         print(f"epoch: {epoch}/{config.num_epochs}, lr: {lr_scheduler.get_last_lr()[0]:.6f}")
-        train_stats = run_one_epoch(model, train_dataloader, "train", optimizer)
-        eval_stats = run_one_epoch(model, eval_dataloader, "eval")
+        train_stats = run_one_epoch(model, train_dataloader, "train", config, optimizer)
+        if epoch % config.eval_every == 0:
+            eval_stats = run_one_epoch(model, eval_dataloader, "eval", config)
+
         lr_scheduler.step()
 
         save_dict = {
             "epoch": epoch,
             "train_loss": train_stats["loss"],
-            "eval_loss": eval_stats["loss"],
             "model_state_dict": {k: v.cpu() for (k, v) in model.state_dict().items()},
             "optimizer_state_dict": optimizer.state_dict(),
             "lr_scheduler_state_dict": lr_scheduler.state_dict(),

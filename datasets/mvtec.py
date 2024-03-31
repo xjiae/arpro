@@ -3,8 +3,8 @@ import pwd
 import sys
 import torch
 from typing import Optional
-from torch.utils.data import Dataset, DataLoader, Subset, ConcatDataset, \
-    random_split
+from torch.utils.data import Dataset
+from torchvision import transforms
 
 """ Hacky method for setting paths while we work on this """
 
@@ -32,29 +32,36 @@ MVTEC_CATEGORIES = [
     "zipper",
 ]
 
+
 class MVTecDataset(Dataset):
     """ Wrapper around an mvtec class that we use for vae training. """
     def __init__(
         self,
         category: str,
         mvtec_dir: str = MVTEC_DIR,
-        split = "train",
+        split: str = "train",
+        normalize_image: bool = False,
         **kwargs
     ):
         assert os.path.isdir(MVTEC_DIR)
         self.mvtec_dataset = MVTec(mvtec_dir, category, split=split, **kwargs)
+        self.normalize_image = normalize_image
+        self.normalize_transforms = transforms.Compose([
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
 
     def __len__(self):
         return len(self.mvtec_dataset)
 
     def __getitem__(self, idx):
         image, mask, y = self.mvtec_dataset[idx]
+        if self.normalize_image:
+            image = self.normalize_transforms(image)
         return image, mask, y
     
     def get_mask(self, idx):
         _, mask, _ = self.mvtec_dataset[idx]
         return mask
-    
 
 
 
