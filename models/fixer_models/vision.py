@@ -2,25 +2,33 @@ import torch
 import torch.nn as nn
 
 from ..common import *
-from diffusers import AutoencoderKL
+from diffusers.models import AutoencoderKL
 
 
-class VaeADModel(nn.Module):
-    """ A little wrapper around AutoencoderKL Vae from diffusers """
+
+class VaeFixerModel(nn.Module):
     def __init__(
         self,
         image_channels: int = 3,
         **kwargs
     ):
         super().__init__()
+        self.image_channels = image_channels
+        self.in_channels = 3 * image_channels   # image, alpha, omega
         self.vae = AutoencoderKL(
-            in_channels = image_channels,
+            in_channels = in_channels,
             out_channels = image_channels,
             **kwargs
         )
 
-    def forward(self, x):
-        enc = self.vae.encode(x)
+    def forward(
+        self,
+        x_bad: torch.FloatTensor,
+        alpha: torch.FloatTensor,
+        omega: torch.LongTensor
+    ):
+        xx = torch.cat([x_bad, alpha, omega.float()], dim=1)
+        enc = self.vae.encode(xx)
         mu, logvar = enc.latent_dist.mean, enc.latent_dist.logvar
 
         if self.training:
@@ -29,20 +37,17 @@ class VaeADModel(nn.Module):
             z = mu
 
         dec = self.vae.decode(z)
-        x_recon = dec.sample
-        alpha = (x - x_recon).abs()
-        score = alpha.norm(p=2, dim=(1,2,3)) ** 2
-        return ADModelOutput(
-            score = score,
-            alpha = alpha,
+        x_fix = dec.sample
+        return FixerModelOutput(
+            x_fix = x_fix,
             others = {
-                "x_recon": x_recon,
                 "z": z,
                 "mu": mu,
                 "logvar": logvar,
                 "enc": enc,
-                "dec": dec,
+                "dec": dec
             }
         )
+
 
 

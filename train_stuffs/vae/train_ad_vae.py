@@ -44,13 +44,12 @@ def run_one_epoch(
     pbar = tqdm(dataloader)
 
     for i, batch in enumerate(pbar):
-        x, m, y = batch
-        x, m, y = x.to(device), m.to(device), y.to(device)
+        x = batch["image"].to(device)
         x = 2*x - 1 # Scale to [-1,+1]
         out = model(x)
 
         with torch.set_grad_enabled(train_or_eval == "train"):
-            score, mu, logvar = out.score, out.other["mu"], out.other["logvar"]
+            score, mu, logvar = out.score, out.others["mu"], out.others["logvar"]
             recon_loss = out.score.mean()
             kldiv_loss = -0.5 * torch.mean(1 + logvar - (mu**2) - logvar.exp())
             loss = recon_loss + kldiv_loss
@@ -81,10 +80,7 @@ def run_one_epoch(
 
 def train_vae_ad(config: VaeADTrainingConfig):
     """ Set up the models, dataloaders, optimizers, etc and start training """
-    model = VaeADModel(
-        in_channels=config.image_channels,
-        out_channels = config.image_channels
-    )
+    model = VaeADModel(image_channels=config.image_channels)
     if config.use_cuda:
         model.cuda()
 

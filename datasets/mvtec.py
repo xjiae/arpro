@@ -54,14 +54,10 @@ class MVTecDataset(Dataset):
         return len(self.mvtec_dataset)
 
     def __getitem__(self, idx):
-        image, mask, y = self.mvtec_dataset[idx]
+        ret = self.mvtec_dataset[idx]
         if self.normalize_image:
-            image = self.normalize_transforms(image)
-        return image, mask, y
+            ret["image"] = self.normalize_transforms(ret["image"])
+
+        return ret
     
-    def get_mask(self, idx):
-        _, mask, _ = self.mvtec_dataset[idx]
-        return mask
-
-
 
