@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 import torch
+import torch.nn.functional as F
 from torch.optim.lr_scheduler import LinearLR, SequentialLR
 
 from typing import Optional
@@ -26,6 +27,8 @@ class TrainADVaeConfig:
     image_channels: int = 3
     warmup_ratio: float = 0.1
     eval_every: int = 5
+    recon_scale: float = 10.
+    kldiv_scale: float = 1.
 
 
 def run_one_epoch(
@@ -48,9 +51,9 @@ def run_one_epoch(
 
         with torch.set_grad_enabled(train_or_eval == "train"):
             out = model(x)
-            score, mu, logvar = out.score, out.others["mu"], out.others["logvar"]
-            recon_loss = out.score.mean()
-            kldiv_loss = -0.5 * torch.mean(1 + logvar - (mu**2) - logvar.exp())
+            x_recon, mu, logvar = out.others["x_recon"], out.others["mu"], out.others["logvar"]
+            recon_loss = F.mse_loss(x_recon, x, reduction="mean") * config.recon_scale
+            kldiv_loss = (-0.5*torch.mean(1 + logvar - (mu**2) - logvar.exp())) * config.kldiv_scale
             loss = recon_loss + kldiv_loss
             if train_or_eval == "train":
                 loss.backward()
@@ -65,8 +68,8 @@ def run_one_epoch(
         avg_recon_loss = acc_recon_loss / num_dones
         avg_kldiv_loss = acc_kldiv_loss / num_dones
         desc = "[train] " if train_or_eval == "train" else "[eval]  "
-        desc += f"N {num_dones}, loss {avg_loss:.3f} "
-        desc += f"(recon {avg_recon_loss:.3f}, kldiv {avg_kldiv_loss:.3f})"
+        desc += f"N {num_dones}, loss {avg_loss:.4f} "
+        desc += f"(recon {avg_recon_loss:.4f}, kldiv {avg_kldiv_loss:.4f})"
         pbar.set_description(desc)
 
     return {
@@ -149,7 +152,7 @@ def train_ad_vae(config: TrainADVaeConfig):
         if best_loss is None or this_loss < best_loss:
             best_save_dict = save_dict
             delta = 0. if best_loss is None else (best_loss - this_loss)
-            print(f"New best {this_loss:.3f}, delta {delta:.3f}")
+            print(f"New best {this_loss:.4f}, delta {delta:.4f}")
             best_loss = this_loss
             if config.do_save:
                 torch.save(save_dict, best_saveto)

@@ -501,3 +501,128 @@
 [I 2024-03-31 22:53:44.874 ServerApp] Saving file at /fixer_vae_test.ipynb
 [I 2024-03-31 22:53:44.992 ServerApp] Saving file at /fixer_vae_test.ipynb
 [I 2024-03-31 22:53:45.236 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:56:30.751 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-31 22:56:30.771 ServerApp] Connecting to kernel 9f92a690-e6b7-445f-bc76-8764d5ce50ba.
+[I 2024-03-31 22:56:30.789 ServerApp] Connecting to kernel 629ec45b-be56-4629-b918-09b7b8e8c613.
+[I 2024-03-31 22:56:31.176 ServerApp] Connecting to kernel 629ec45b-be56-4629-b918-09b7b8e8c613.
+[I 2024-03-31 22:58:31.165 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 23:04:28.967 ServerApp] Starting buffering for 9f92a690-e6b7-445f-bc76-8764d5ce50ba:6294b715-7fa7-4536-9e71-b0951dd101bb
+[I 2024-03-31 23:04:28.967 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:65ab6b01-0a08-4122-9a8d-a34ffbbcf369
+[I 2024-03-31 23:04:28.968 ServerApp] Starting buffering for 629ec45b-be56-4629-b918-09b7b8e8c613:aa21c071-2cf1-46e2-b9ea-222d27b0fb83
+[I 2024-04-01 12:01:01.292 ServerApp] 302 GET / (@127.0.0.1) 0.29ms
+[I 2024-04-01 12:01:01.969 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:01:02.028 ServerApp] Connecting to kernel 9f92a690-e6b7-445f-bc76-8764d5ce50ba.
+[I 2024-04-01 12:01:02.050 ServerApp] Connecting to kernel 629ec45b-be56-4629-b918-09b7b8e8c613.
+[I 2024-04-01 12:01:02.111 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:59a7c5f5-72ce-42a8-a1c9-435d2ba95699
+[I 2024-04-01 12:01:02.154 ServerApp] Starting buffering for 9f92a690-e6b7-445f-bc76-8764d5ce50ba:a0a7778e-539f-4412-aa2f-c74f9e5868cf
+[I 2024-04-01 12:01:02.169 ServerApp] Starting buffering for 629ec45b-be56-4629-b918-09b7b8e8c613:62ac6ac0-7af6-4472-b249-b429ec9c4b86
+[I 2024-04-01 12:01:05.831 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:01:05.846 ServerApp] Connecting to kernel 9f92a690-e6b7-445f-bc76-8764d5ce50ba.
+[I 2024-04-01 12:01:05.863 ServerApp] Connecting to kernel 629ec45b-be56-4629-b918-09b7b8e8c613.
+[I 2024-04-01 12:01:05.986 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:4149e746-4e41-4b54-a6ff-28e3f36466d8
+[I 2024-04-01 12:01:05.986 ServerApp] Starting buffering for 9f92a690-e6b7-445f-bc76-8764d5ce50ba:28f6b3e1-94d2-4c5f-bab7-f093d4af029b
+[I 2024-04-01 12:01:05.987 ServerApp] Starting buffering for 629ec45b-be56-4629-b918-09b7b8e8c613:95b1c61a-014f-496d-982f-5e9128aaf09c
+[I 2024-04-01 12:01:06.170 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:01:09.960 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 12:01:10.024 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:01:10.029 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:01:10.029 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:03:06.099 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-04-01 12:07:00.824 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 12:07:00.846 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:07:00.856 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:07:00.856 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:07:07.030 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-04-01 12:07:11.243 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-04-01 12:09:07.147 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-04-01 12:10:59.734 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 12:10:59.806 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:10:59.813 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:10:59.813 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:11:07.203 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-04-01 12:13:07.302 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-04-01 12:18:29.083 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 12:18:29.180 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:18:29.192 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:18:29.192 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:18:53.945 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 12:18:54.060 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:18:54.065 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:18:54.065 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:20:37.019 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 12:35:48.451 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 12:35:48.535 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:35:48.542 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:35:48.542 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:37:22.088 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 12:40:18.753 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 12:40:18.808 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:40:18.813 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:40:18.813 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:41:22.205 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 12:46:44.818 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 12:46:44.914 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:46:44.920 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 12:46:44.920 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 12:47:22.312 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 13:04:36.996 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 13:04:37.002 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 13:04:37.008 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 13:04:37.008 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 13:06:22.107 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 13:28:54.114 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 13:28:54.121 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 13:28:54.127 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 13:28:54.127 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 13:29:22.059 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 13:31:23.123 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 13:49:04.771 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 13:49:05.968 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 13:49:05.982 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 13:49:05.982 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 13:50:22.235 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 14:08:57.507 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 14:08:57.522 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 14:08:57.529 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 14:08:57.529 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 14:09:22.108 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 14:10:59.061 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 14:10:59.189 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 14:10:59.210 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 14:10:59.210 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 14:11:22.156 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 14:13:22.305 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 14:13:57.818 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 14:13:57.867 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 14:13:57.874 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 14:13:57.874 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 14:15:22.455 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 14:41:21.027 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 14:41:21.066 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 14:41:21.073 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 14:41:21.073 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 14:41:22.518 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 14:43:23.180 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 15:00:42.012 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 15:00:42.018 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 15:00:42.018 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[W 2024-04-01 15:02:12.019 ServerApp] WebSocket ping timeout after 90000 ms.
+[I 2024-04-01 15:02:17.020 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 16:21:00.103 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 16:21:00.108 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 16:21:00.108 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[W 2024-04-01 16:21:00.122 ServerApp] Replacing stale connection: 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 16:21:00.123 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 16:21:00.365 ServerApp] Replaying 3 buffered messages
+[W 2024-04-01 16:21:00.365 ServerApp] 
+[W 2024-04-01 16:21:00.365 ServerApp] 
+[W 2024-04-01 16:21:00.365 ServerApp] 
+[W 2024-04-01 16:21:00.366 ServerApp] Got events for closed stream <zmq.eventloop.zmqstream.ZMQStream object at 0x7fb7c9c52d10>
+[I 2024-04-01 16:22:49.089 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 16:24:41.167 ServerApp] Kernel restarted: 6a3e95bb-749d-4483-bbfa-6598db3e5076
+[I 2024-04-01 16:24:41.228 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 16:24:41.236 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-04-01 16:24:41.236 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c
+[I 2024-04-01 16:24:49.196 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 16:26:49.320 ServerApp] Saving file at /ad_vae_mvtec_test.ipynb
+[I 2024-04-01 16:48:47.912 ServerApp] Starting buffering for 6a3e95bb-749d-4483-bbfa-6598db3e5076:fa093600-2b48-4ba8-83c9-7446fe56850c

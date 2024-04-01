@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 import torch
+import torch.nn.functional as F
 from torch.optim.lr_scheduler import LinearLR, SequentialLR
 
 from typing import Optional
@@ -28,6 +29,8 @@ class TrainFixerVaeConfig:
     eval_every: int = 5
     black_q_range: tuple[float, float] = (0.5, 0.9)
     ad_model_path: Optional[str] = None
+    recon_scale: float = 10.
+    kldiv_scale: float = 1.
 
 
 def run_one_epoch(
@@ -44,7 +47,7 @@ def run_one_epoch(
     num_dones = 0
     acc_kldiv_loss = 0. # This part is for actual VAE training
     acc_total_recon_loss = 0. # Recon loss for the entire image
-    acc_okay_recon_loss = 0. # How we do for recon on the okay parts
+    acc_good_recon_loss = 0. # How we do for recon on the good parts
     acc_loss = 0. # The total loss incurred
 
     pbar = tqdm(dataloader)
@@ -58,8 +61,8 @@ def run_one_epoch(
             q_lo, q_hi = config.black_q_range
             q = ((q_hi - q_lo) * torch.rand(()) + q_lo).to(x.device)
             anom_parts = make_blobs(N, H, W, q=q, device=x.device)
-            okay_parts = 1 - anom_parts
-            x_masked = okay_parts * x
+            good_parts = 1 - anom_parts
+            x_masked = good_parts * x
 
         # Otherwise use the ad model to generate this
         else:
@@ -69,20 +72,18 @@ def run_one_epoch(
                 q = (torch.rand(()) * 0.1 + 0.9).to(x.device) # Quantile in [0.9, 1.0]
                 thresh = alpha.view(N,-1).quantile(q, dim=1).view(N,1,1,1)
                 anom_parts = (alpha > thresh).long() # (N,1,H,W)
-                okay_parts = 1 - anom_parts
-                x_masked = okay_parts * x
+                good_parts = 1 - anom_parts
+                x_masked = good_parts * x
 
         # Now run the fixer
         with torch.set_grad_enabled(train_or_eval == "train"):
             fixer_out = fixer_model(x_masked, anom_parts)
             x_fix, mu, logvar = fixer_out.x_fix, fixer_out.others["mu"], fixer_out.others["logvar"]
             
-            total_recon_err = (x - x_fix).norm(p=2, dim=(1,2,3)) ** 2   # (batch_size,)
-            okay_recon_err = ((x - x_fix) * okay_parts).norm(p=2, dim=(1,2,3)) ** 2 # (batch_size,)
-            total_recon_loss = total_recon_err.mean()
-            okay_recon_loss = okay_recon_err.mean()
-            kldiv_loss = -0.5 * torch.mean(1 + logvar - (mu**2) - logvar.exp())
-            loss = total_recon_loss + kldiv_loss    # For now, don't include the okay_recon_loss
+            total_recon_loss = F.mse_loss(x, x_fix) * config.recon_scale
+            good_recon_loss = F.mse_loss(x * good_parts, x_fix * good_parts)
+            kldiv_loss = (-0.5 * torch.mean(1 + logvar - (mu**2) - logvar.exp())) * config.kldiv_scale
+            loss = total_recon_loss + kldiv_loss    # For now, don't include the good_recon_loss
             if train_or_eval == "train":
                 loss.backward()
                 optimizer.step()
@@ -91,18 +92,18 @@ def run_one_epoch(
         num_dones += x.size(0)
         acc_loss += loss * x.size(0)
         acc_total_recon_loss += total_recon_loss * x.size(0)
-        acc_okay_recon_loss += okay_recon_loss * x.size(0)
+        acc_good_recon_loss += good_recon_loss * x.size(0)
         acc_kldiv_loss += kldiv_loss * x.size(0)
 
         avg_loss = acc_loss / num_dones
         avg_total_recon_loss = acc_total_recon_loss / num_dones
-        avg_okay_recon_loss = acc_okay_recon_loss / num_dones
+        avg_good_recon_loss = acc_good_recon_loss / num_dones
         avg_kldiv_loss = acc_kldiv_loss / num_dones
 
         desc = "[train] " if train_or_eval == "train" else "[eval]  "
         desc += f"N {num_dones}, loss {avg_loss:.3f} "
         desc += f"(t_recon {avg_total_recon_loss:.3f}, "
-        desc += f"o_recon {avg_okay_recon_loss:.3f}, "
+        desc += f"o_recon {avg_good_recon_loss:.3f}, "
         desc += f"kldiv {avg_kldiv_loss:.3f})"
         pbar.set_description(desc)
 
@@ -110,7 +111,7 @@ def run_one_epoch(
         "model": fixer_model,
         "loss": avg_loss,
         "total_recon_loss": avg_total_recon_loss,
-        "okay_recon_loss": avg_okay_recon_loss,
+        "good_recon_loss": avg_good_recon_loss,
         "kldiv_loss": avg_kldiv_loss
     }
 
