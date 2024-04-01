@@ -3,11 +3,15 @@ from pathlib import Path
 
 from datasets import *
 from fixer import *
+from ad.models import *
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_name", type=str, default="vae")
+
+    # The AD model used to evaluate stuffs with
+    parser.add_argument("--ad_model_name", type=str, default="vae")
     
     # Model-specific parameters
     parser.add_argument("--dataset_name", type=str, default="mvtec")

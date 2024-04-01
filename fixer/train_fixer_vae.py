@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from tqdm import tqdm
 
 from .models import VaeFixerModel
+from ad.models.vision import VaeADModel
+
 from .image_utils import *
 from datasets import get_fixer_dataloader
 
@@ -25,20 +27,18 @@ class TrainFixerVaeConfig:
     warmup_ratio: float = 0.1
     eval_every: int = 5
     black_q_range: tuple[float, float] = (0.5, 0.9)
+    ad_model_path: Optional[str] = None
 
 
 def run_one_epoch(
     fixer_model,
+    ad_model,
     dataloader,
     train_or_eval: str,
     config: TrainFixerVaeConfig,
     optimizer = None,
-    ad_model = None,
 ):
     assert train_or_eval in ["train", "eval"]
-    if train_or_eval == "eval":
-        print(f"TODO: implement evaluation")
-
     device = next(fixer_model.parameters()).device
 
     num_dones = 0
@@ -50,15 +50,29 @@ def run_one_epoch(
     pbar = tqdm(dataloader)
     for i, batch in enumerate(pbar):
         x = batch["image"].to(device)
-
-        # Generate some "anomalous" images"
+        x = 2*x - 1
         N, C, H, W = x.shape
-        q_lo, q_hi = config.black_q_range
-        q = ((q_hi - q_lo) * torch.rand(()) + q_lo).to(x.device)
-        anom_parts = make_blobs(N, H, W, q=q, device=x.device)
-        okay_parts = 1 - anom_parts
-        x_masked = (1 - anom_parts) * x
 
+        # Generate x_masked and anom_parts
+        if train_or_eval == "train":
+            q_lo, q_hi = config.black_q_range
+            q = ((q_hi - q_lo) * torch.rand(()) + q_lo).to(x.device)
+            anom_parts = make_blobs(N, H, W, q=q, device=x.device)
+            okay_parts = 1 - anom_parts
+            x_masked = okay_parts * x
+
+        # Otherwise use the ad model to generate this
+        else:
+            with torch.set_grad_enabled(False):
+                ad_out = ad_model(x)
+                alpha = ad_out.alpha.max(dim=1, keepdim=True).values # (N,1,H,W)
+                q = (torch.rand(()) * 0.1 + 0.9).to(x.device) # Quantile in [0.9, 1.0]
+                thresh = alpha.view(N,-1).quantile(q, dim=1).view(N,1,1,1)
+                anom_parts = (alpha > thresh).long() # (N,1,H,W)
+                okay_parts = 1 - anom_parts
+                x_masked = okay_parts * x
+
+        # Now run the fixer
         with torch.set_grad_enabled(train_or_eval == "train"):
             fixer_out = fixer_model(x_masked, anom_parts)
             x_fix, mu, logvar = fixer_out.x_fix, fixer_out.others["mu"], fixer_out.others["logvar"]
@@ -104,8 +118,15 @@ def run_one_epoch(
 def train_fixer_vae(config: TrainFixerVaeConfig):
     """ Set up the models, dataloaders, etc """
     fixer_model = VaeFixerModel(image_channels=config.image_channels)
+
+    # Load the AD Model
+    ad_model = VaeADModel(image_channels=config.image_channels)
+    ad_model.load_state_dict(torch.load(config.ad_model_path)["model_state_dict"])
+    ad_model.eval()
+
     if config.use_cuda:
         fixer_model.cuda()
+        ad_model.cuda()
 
     train_dataloader = get_fixer_dataloader(
         dataset_name = "mvtec",
@@ -115,7 +136,13 @@ def train_fixer_vae(config: TrainFixerVaeConfig):
         split = "train"
     )
 
-    # TODO: implement the eval portion of training
+    eval_dataloader = get_fixer_dataloader(
+        dataset_name = "mvtec",
+        model_name = "vae",
+        batch_size = config.batch_size,
+        category = config.mvtec_category,
+        split = "test"
+    )
 
     optimizer = torch.optim.AdamW(
         fixer_model.parameters(),
@@ -146,10 +173,9 @@ def train_fixer_vae(config: TrainFixerVaeConfig):
 
     for epoch in range(1, config.num_epochs+1):
         print(f"epoch: {epoch}/{config.num_epochs}, lr: {lr_scheduler.get_last_lr()[0]:.6f}")
-        train_stats = run_one_epoch(fixer_model, train_dataloader, "train", config, optimizer)
+        train_stats = run_one_epoch(fixer_model, ad_model, train_dataloader, "train", config, optimizer)
         if epoch % config.eval_every == 0:
-            eval_stats = None
-            print(f"TODO: implement eval")
+            eval_stats = run_one_epoch(fixer_model, ad_model, eval_dataloader, "eval", config)
 
         lr_scheduler.step()
 
@@ -178,14 +204,19 @@ def train_fixer_vae(config: TrainFixerVaeConfig):
 
 def init_and_train_fixer_vae(args):
     assert args.model_name == "vae"
+    assert args.ad_model_name == "vae"
     assert args.dataset_name == "mvtec"
+
+    ad_model_path = Path(args.output_dir, f"ad_vae_mvtec_{args.mvtec_category}_best.pt")
+
     config = TrainFixerVaeConfig(
         num_epochs = args.num_epochs,
         lr = args.lr,
         mvtec_category = args.mvtec_category,
         batch_size = args.batch_size,
         use_cuda = args.cuda,
-        output_dir = args.output_dir
+        output_dir = args.output_dir,
+        ad_model_path = ad_model_path,
     )
 
     train_ret = train_fixer_vae(config)
