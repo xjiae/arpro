@@ -462,3 +462,42 @@
 [I 2024-03-31 21:27:57.741 ServerApp] Restoring connection for 6a3e95bb-749d-4483-bbfa-6598db3e5076:65ab6b01-0a08-4122-9a8d-a34ffbbcf369
 [I 2024-03-31 21:28:01.950 ServerApp] Saving file at /vae_mvtec_test.ipynb
 [I 2024-03-31 21:30:02.026 ServerApp] Saving file at /vae_mvtec_test.ipynb
+[I 2024-03-31 22:24:14.511 ServerApp] 302 GET / (@127.0.0.1) 0.28ms
+[I 2024-03-31 22:24:15.150 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-31 22:24:15.167 ServerApp] Connecting to kernel 9f92a690-e6b7-445f-bc76-8764d5ce50ba.
+[I 2024-03-31 22:24:17.316 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-31 22:24:17.335 ServerApp] Connecting to kernel 9f92a690-e6b7-445f-bc76-8764d5ce50ba.
+[I 2024-03-31 22:24:17.651 ServerApp] Connecting to kernel 9f92a690-e6b7-445f-bc76-8764d5ce50ba.
+[I 2024-03-31 22:28:47.094 ServerApp] Creating new notebook in 
+[I 2024-03-31 22:28:47.173 ServerApp] Saving file at /Untitled.ipynb
+[I 2024-03-31 22:28:47.206 ServerApp] Kernel started: 629ec45b-be56-4629-b918-09b7b8e8c613
+[I 2024-03-31 22:28:47.462 ServerApp] Connecting to kernel 629ec45b-be56-4629-b918-09b7b8e8c613.
+[I 2024-03-31 22:28:47.758 ServerApp] Connecting to kernel 6a3e95bb-749d-4483-bbfa-6598db3e5076.
+[I 2024-03-31 22:28:47.776 ServerApp] Connecting to kernel 9f92a690-e6b7-445f-bc76-8764d5ce50ba.
+[I 2024-03-31 22:28:47.793 ServerApp] Connecting to kernel 629ec45b-be56-4629-b918-09b7b8e8c613.
+[I 2024-03-31 22:28:48.041 ServerApp] Connecting to kernel 629ec45b-be56-4629-b918-09b7b8e8c613.
+[I 2024-03-31 22:30:53.995 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:32:54.063 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:33:30.933 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:35:31.033 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:37:31.092 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:39:31.146 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:41:31.249 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:43:31.355 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:44:19.626 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:44:19.758 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:44:19.895 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:46:19.733 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:48:19.847 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:48:41.789 ServerApp] Kernel restarted: 629ec45b-be56-4629-b918-09b7b8e8c613
+[I 2024-03-31 22:48:41.803 ServerApp] Connecting to kernel 629ec45b-be56-4629-b918-09b7b8e8c613.
+[I 2024-03-31 22:49:10.841 ServerApp] Kernel restarted: 629ec45b-be56-4629-b918-09b7b8e8c613
+[I 2024-03-31 22:49:10.890 ServerApp] Connecting to kernel 629ec45b-be56-4629-b918-09b7b8e8c613.
+[I 2024-03-31 22:50:19.988 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:52:20.105 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:53:11.440 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:53:11.597 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:53:39.090 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:53:44.874 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:53:44.992 ServerApp] Saving file at /fixer_vae_test.ipynb
+[I 2024-03-31 22:53:45.236 ServerApp] Saving file at /fixer_vae_test.ipynb

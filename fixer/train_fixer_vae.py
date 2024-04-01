@@ -163,7 +163,7 @@ def train_fixer_vae(config: TrainFixerVaeConfig):
 
     if config.do_save:
         assert config.output_dir is not None and Path(config.output_dir).is_dir()
-        saveto_prefix = "fixer_vae_mvtec_{config.mvtec_category}"
+        saveto_prefix = f"fixer_vae_mvtec_{config.mvtec_category}"
         last_saveto = str(Path(config.output_dir, saveto_prefix + "_last.pt"))
         best_saveto = str(Path(config.output_dir, saveto_prefix + "_best.pt"))
     else:
