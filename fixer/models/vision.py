@@ -1,33 +1,24 @@
 import torch
 import torch.nn as nn
 
-from ..common import *
+from .common import *
 from diffusers.models import AutoencoderKL
 
 
-
 class VaeFixerModel(nn.Module):
-    def __init__(
-        self,
-        image_channels: int = 3,
-        **kwargs
-    ):
+    def __init__(self, image_channels: int = 3, **kwargs):
         super().__init__()
         self.image_channels = image_channels
-        self.in_channels = 3 * image_channels   # image, alpha, omega
+        self.vae_in_channels = image_channels + 1   # masked_image, omega
         self.vae = AutoencoderKL(
-            in_channels = in_channels,
+            in_channels = self.vae_in_channels,
             out_channels = image_channels,
             **kwargs
         )
 
-    def forward(
-        self,
-        x_bad: torch.FloatTensor,
-        alpha: torch.FloatTensor,
-        omega: torch.LongTensor
-    ):
-        xx = torch.cat([x_bad, alpha, omega.float()], dim=1)
+    def forward(self, x_masked: torch.FloatTensor, anom_parts: torch.LongTensor):
+        """ (x_masked == 0) ~ mask """
+        xx = torch.cat([x_masked, anom_parts.float()], dim=1)
         enc = self.vae.encode(xx)
         mu, logvar = enc.latent_dist.mean, enc.latent_dist.logvar
 

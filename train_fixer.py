@@ -1,9 +1,8 @@
 import argparse
 from pathlib import Path
 
-from models import *
 from datasets import *
-from train_stuffs import *
+from fixer import *
 
 
 def parse_args():
@@ -38,7 +37,7 @@ if __name__ == "__main__":
 
 
     if args.model_name == "vae" and args.dataset_name == "mvtec":
-        init_and_train_vae_ad(args)
+        init_and_train_fixer_vae(args)
 
 
 

@@ -2,6 +2,8 @@ import os
 import sys
 from pathlib import Path
 import wandb
+import torch
+import torch.nn as nn
 
 """ Some directories """
 PROJ_ROOT = str(Path(__file__).parent.parent.resolve())
@@ -16,4 +18,5 @@ os.environ["WANDB_PROJECT"] = WANDB_PROJECT
 os.environ["WANDB_LOG_MODEL"] = "checkpoint"
 os.environ["WANDB_DIR"] = DUMP_DIR  # _dump/wandb
 os.environ["WANDB_RESUME"]="allow"
+
 

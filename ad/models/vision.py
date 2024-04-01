@@ -1,17 +1,13 @@
 import torch
 import torch.nn as nn
 
-from ..common import *
+from .common import *
 from diffusers import AutoencoderKL
 
 
 class VaeADModel(nn.Module):
     """ A little wrapper around AutoencoderKL Vae from diffusers """
-    def __init__(
-        self,
-        image_channels: int = 3,
-        **kwargs
-    ):
+    def __init__(self, image_channels: int = 3, **kwargs):
         super().__init__()
         self.vae = AutoencoderKL(
             in_channels = image_channels,
@@ -19,7 +15,7 @@ class VaeADModel(nn.Module):
             **kwargs
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.FloatTensor):
         enc = self.vae.encode(x)
         mu, logvar = enc.latent_dist.mean, enc.latent_dist.logvar
 

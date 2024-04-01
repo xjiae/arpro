@@ -8,15 +8,14 @@ from dataclasses import dataclass
 
 from tqdm import tqdm
 
-import argparse
 import wandb
 
-from models import VaeADModel
+from .models import VaeADModel
 from datasets import get_ad_dataloader
 
 
 @dataclass
-class VaeADTrainingConfig:
+class TrainADVaeConfig:
     mvtec_category: str
     num_epochs: int
     lr: float
@@ -25,7 +24,7 @@ class VaeADTrainingConfig:
     do_save: bool = True
     output_dir: Optional[str] = None
     image_channels: int = 3
-    warmup: float = 0.1
+    warmup_ratio: float = 0.1
     eval_every: int = 5
 
 
@@ -33,7 +32,7 @@ def run_one_epoch(
     model,
     dataloader,
     train_or_eval: str,
-    config: VaeADTrainingConfig,
+    config: TrainADVaeConfig,
     optimizer = None,
 ):
     assert train_or_eval in ["train", "eval"]
@@ -46,9 +45,9 @@ def run_one_epoch(
     for i, batch in enumerate(pbar):
         x = batch["image"].to(device)
         x = 2*x - 1 # Scale to [-1,+1]
-        out = model(x)
 
         with torch.set_grad_enabled(train_or_eval == "train"):
+            out = model(x)
             score, mu, logvar = out.score, out.others["mu"], out.others["logvar"]
             recon_loss = out.score.mean()
             kldiv_loss = -0.5 * torch.mean(1 + logvar - (mu**2) - logvar.exp())
@@ -66,7 +65,7 @@ def run_one_epoch(
         avg_recon_loss = acc_recon_loss / num_dones
         avg_kldiv_loss = acc_kldiv_loss / num_dones
         desc = "[train] " if train_or_eval == "train" else "[eval]  "
-        desc += f"num_dones {num_dones}, loss {avg_loss:.3f} "
+        desc += f"N {num_dones}, loss {avg_loss:.3f} "
         desc += f"(recon {avg_recon_loss:.3f}, kldiv {avg_kldiv_loss:.3f})"
         pbar.set_description(desc)
 
@@ -78,7 +77,7 @@ def run_one_epoch(
     }
 
 
-def train_vae_ad(config: VaeADTrainingConfig):
+def train_ad_vae(config: TrainADVaeConfig):
     """ Set up the models, dataloaders, optimizers, etc and start training """
     model = VaeADModel(image_channels=config.image_channels)
     if config.use_cuda:
@@ -105,7 +104,7 @@ def train_vae_ad(config: VaeADTrainingConfig):
         lr = config.lr,
     )
 
-    warmup_epochs = int(config.num_epochs * config.warmup)
+    warmup_epochs = int(config.num_epochs * config.warmup_ratio)
     decay_epochs = config.num_epochs - warmup_epochs
 
     lr_scheduler = SequentialLR(
@@ -119,7 +118,7 @@ def train_vae_ad(config: VaeADTrainingConfig):
 
     if config.do_save:
         assert config.output_dir is not None and Path(config.output_dir).is_dir()
-        saveto_prefix = f"vae_mvtec_{config.mvtec_category}"
+        saveto_prefix = f"ad_vae_mvtec_{config.mvtec_category}"
         last_saveto = str(Path(config.output_dir, saveto_prefix + "_last.pt"))
         best_saveto = str(Path(config.output_dir, saveto_prefix + "_best.pt"))
     else:
@@ -158,10 +157,10 @@ def train_vae_ad(config: VaeADTrainingConfig):
     return None
 
 
-def init_and_train_vae_ad(args):
+def init_and_train_ad_vae(args):
     assert args.model_name == "vae"
     assert args.dataset_name == "mvtec"
-    config = VaeADTrainingConfig(
+    config = TrainADVaeConfig(
         num_epochs = args.num_epochs,
         lr = args.lr,
         mvtec_category = args.mvtec_category,
@@ -170,6 +169,6 @@ def init_and_train_vae_ad(args):
         output_dir = args.output_dir
     )
 
-    train_ret = train_vae_ad(config)
+    train_ret = train_ad_vae(config)
     return train_ret
 
