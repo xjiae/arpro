@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from tqdm import tqdm
 
 from .models import VaeFixerModel
-from ad.models.vision import VaeADModel
+from ad.models.vision import FastflowAdModel
 
 from .image_utils import *
 from datasets import get_fixer_dataloader
@@ -89,19 +89,19 @@ def run_one_epoch(
             
             total_recon_loss = F.mse_loss(x, x_fix) * config.recon_scale
             good_recon_loss = F.mse_loss(x * good_parts, x_fix * good_parts)
+            # raw_anom_score = ad_model(x).score
+            # fixed_anom_score = ad_model(x_fix).score
+            # good_anom_score = ad_model(x_masked).score
+            # bad_anom_score = ad_model(anom_parts*x).score
 
-            raw_anom_score = ad_model(x).score
-            fixed_anom_score = ad_model(x_fix).score
-            good_anom_score = ad_model(x_masked).score
-            bad_anom_score = ad_model(anom_parts*x).score
-
-            global_loss = fixed_anom_score.sum()
-            bad_loss = F.relu(bad_anom_score + config.gamma1).sum() * config.lambda1
-            good_loss = F.relu(good_anom_score - config.gamma2).sum() * config.lambda2
-            same_loss = F.relu(((good_parts * (x - x_fix))**2) - config.gamma3).sum() * config.lambda2
+            # global_loss = fixed_anom_score.sum()
+            # bad_loss = F.relu(bad_anom_score + config.gamma1).sum() * config.lambda1
+            # good_loss = F.relu(good_anom_score - config.gamma2).sum() * config.lambda2
+            # same_loss = F.relu(((good_parts * (x - x_fix))**2) - config.gamma3).sum() * config.lambda2
             kldiv_loss = (-0.5 * torch.mean(1 + logvar - (mu**2) - logvar.exp())) * config.kldiv_scale
             # For now, don't include the good_recon_loss
-            loss = total_recon_loss + kldiv_loss  + global_loss + bad_loss + good_loss + same_loss 
+            # loss = total_recon_loss + kldiv_loss  + global_loss + bad_loss + good_loss + same_loss 
+            loss = total_recon_loss + kldiv_loss
             if train_or_eval == "train":
                 loss.backward()
                 optimizer.step()
@@ -134,12 +134,12 @@ def run_one_epoch(
     }
 
 
-def train_fixer_vae(config: TrainFixerVaeConfig):
+def train_fixer_fastflow(config: TrainFixerVaeConfig):
     """ Set up the models, dataloaders, etc """
     fixer_model = VaeFixerModel(image_channels=config.image_channels)
 
     # Load the AD Model
-    ad_model = VaeADModel(image_channels=config.image_channels)
+    ad_model = FastflowAdModel()
     ad_model.load_state_dict(torch.load(config.ad_model_path)["model_state_dict"])
     ad_model.eval()
 
@@ -182,7 +182,7 @@ def train_fixer_vae(config: TrainFixerVaeConfig):
 
     if config.do_save:
         assert config.output_dir is not None and Path(config.output_dir).is_dir()
-        saveto_prefix = f"fixer_vae_mvtec_{config.mvtec_category}"
+        saveto_prefix = f"fixer_fast_mvtec_{config.mvtec_category}"
         last_saveto = str(Path(config.output_dir, saveto_prefix + "_last.pt"))
         best_saveto = str(Path(config.output_dir, saveto_prefix + "_best.pt"))
     else:
@@ -221,12 +221,12 @@ def train_fixer_vae(config: TrainFixerVaeConfig):
     return None
 
 
-def init_and_train_fixer_vae(args):
+def init_and_train_fixer_fastflow(args):
     assert args.model_name == "vae"
-    assert args.ad_model_name == "vae"
+    assert args.ad_model_name == "fastflow"
     assert args.dataset_name == "mvtec"
 
-    ad_model_path = Path(args.output_dir, f"ad_vae_mvtec_{args.mvtec_category}_best.pt")
+    ad_model_path = Path(args.output_dir, f"ad_fast_mvtec_{args.mvtec_category}_best.pt")
 
     config = TrainFixerVaeConfig(
         num_epochs = args.num_epochs,
@@ -238,6 +238,6 @@ def init_and_train_fixer_vae(args):
         ad_model_path = ad_model_path,
     )
 
-    train_ret = train_fixer_vae(config)
+    train_ret = train_fixer_fastflow(config)
     return train_ret
 

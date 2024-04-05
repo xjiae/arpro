@@ -24,7 +24,7 @@ def parse_args():
     parser.add_argument("--num_epochs", type=int, default=100)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--batch_size", type=int, default=8)
-    parser.add_argument("--cuda", default=False, action="store_true")
+    parser.add_argument("--device", type=str, default="cuda")
 
     parser.add_argument("--output_dir",
         default=str(Path(Path(__file__).parent.resolve(), "_dump")))
@@ -40,8 +40,10 @@ if __name__ == "__main__":
     args = parse_args()
 
 
-    if args.model_name == "vae" and args.dataset_name == "mvtec":
+    if args.ad_model_name == "vae" and args.dataset_name == "mvtec":
         init_and_train_fixer_vae(args)
+    if args.ad_model_name == "fastflow" and args.dataset_name == "mvtec":
+        init_and_train_fixer_fastflow(args)
 
 
 

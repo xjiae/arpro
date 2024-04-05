@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 import wandb
 
-from .models import VaeADModel
+from .models import FastflowAdModel
 from datasets import get_ad_dataloader
 
 
@@ -22,10 +22,13 @@ class TrainADVaeConfig:
     num_epochs: int
     lr: float
     batch_size: int
-    device: Optional[str] = None    # Use CPU by default
+    device: Optional[str] = None
     do_save: bool = True
     output_dir: Optional[str] = None
     image_channels: int = 3
+    image_height: int = 256
+    image_width: int = 256
+    backbone = "wide_resnet50_2"
     warmup_ratio: float = 0.1
     eval_every: int = 5
     recon_scale: float = 1.0
@@ -44,70 +47,45 @@ def run_one_epoch(
     _ = model.train() if train_or_eval == "train" else model.eval()
     device = next(model.parameters()).device
 
-    num_dones, acc_loss, acc_recon_loss, acc_kldiv_loss, acc_contrastive_loss = 0, 0., 0., 0., 0.
+    num_dones, acc_loss = 0, 0.
     pbar = tqdm(dataloader)
-    prev_mu = None
     for i, batch in enumerate(pbar):
         x = batch["image"].to(device)
         x = 2*x - 1 # Scale to [-1,+1]
 
         with torch.set_grad_enabled(train_or_eval == "train"):
             out = model(x)
-            x_recon, mu, logvar = out.others["x_recon"], out.others["mu"], out.others["logvar"]
-            recon_loss = F.mse_loss(x_recon, x, reduction="mean") * config.recon_scale
-            kldiv_loss = (-0.5*torch.mean(1 + logvar - (mu**2) - logvar.exp())) * config.kldiv_scale
-            contrastive_loss = 0.0
-            if prev_mu is not None and prev_mu.shape[0] == mu.shape[0]:
-                contrastive_loss = F.mse_loss(mu, prev_mu) * config.contrastive_scale
-            
-            loss = recon_loss + kldiv_loss + contrastive_loss
             if train_or_eval == "train":
+                loss = out.score.mean()
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
-            prev_mu = mu.detach()
 
-        num_dones += x.size(0)
-        acc_loss += loss * x.size(0)
-        acc_recon_loss += recon_loss * x.size(0)
-        acc_kldiv_loss += kldiv_loss * x.size(0)
-        acc_contrastive_loss += contrastive_loss * x.size(0) if prev_mu is not None else 0
+                num_dones += x.size(0)
+                acc_loss += loss * x.size(0)
 
         avg_loss = acc_loss / num_dones
-        avg_recon_loss = acc_recon_loss / num_dones
-        avg_kldiv_loss = acc_kldiv_loss / num_dones
-        avg_contst_loss = acc_contrastive_loss / num_dones
         desc = "[train] " if train_or_eval == "train" else "[eval]  "
         desc += f"N {num_dones}, loss {avg_loss:.4f} "
-        desc += f"(recon {avg_recon_loss:.4f}, kldiv {avg_kldiv_loss:.4f}, contrastive {avg_contst_loss:.4f})"
         pbar.set_description(desc)
 
-        # Log to wandb
-        if train_or_eval == "train":
-            wandb.log({
-                "train_loss": avg_loss,
-                "train_recon_loss": avg_recon_loss,
-                "train_kldiv_loss": avg_kldiv_loss,
-                "train_contst_loss": avg_kldiv_loss,
-            })
-        else:
-            wandb.log({
-                "eval_loss": avg_loss,
-                "eval_recon_loss": avg_recon_loss,
-                "eval_kldvi_loss": avg_kldiv_loss
-            })
+        wandb.log({
+            "train_loss": avg_loss,
+        })
 
     return {
         "model": model,
         "loss": avg_loss,
-        "recon_loss": avg_recon_loss,
-        "kldiv_loss": avg_kldiv_loss,
     }
 
 
-def train_ad_vae(config: TrainADVaeConfig):
+def train_ad_fastflow(config: TrainADVaeConfig):
     """ Set up the models, dataloaders, optimizers, etc and start training """
-    model = VaeADModel(image_channels=config.image_channels)
+    model = FastflowAdModel(
+        image_height = config.image_height,
+        image_width = config.image_width,
+        backbone = config.backbone
+    )
     if config.device is not None:
         model.to(config.device)
 
@@ -144,8 +122,7 @@ def train_ad_vae(config: TrainADVaeConfig):
         milestones = [warmup_epochs]
     )
 
-    run_name = f"ad_vae_mvtec_{config.mvtec_category}"
-    run_name += f"_rs{config.recon_scale:.2f}_ks{config.kldiv_scale:.2f}_cs{config.contrastive_scale}"
+    run_name = f"ad_fast_mvtec_{config.mvtec_category}"
 
     if config.do_save:
         assert config.output_dir is not None and Path(config.output_dir).is_dir()
@@ -167,8 +144,8 @@ def train_ad_vae(config: TrainADVaeConfig):
     for epoch in range(1, config.num_epochs+1):
         print(f"epoch: {epoch}/{config.num_epochs}, lr: {lr_scheduler.get_last_lr()[0]:.6f}")
         train_stats = run_one_epoch(model, train_dataloader, "train", config, optimizer)
-        if epoch % config.eval_every == 0:
-            eval_stats = run_one_epoch(model, eval_dataloader, "eval", config)
+        # if epoch % config.eval_every == 0:
+        #     eval_stats = run_one_epoch(model, eval_dataloader, "eval", config)
 
 
         wandb.log({
@@ -201,8 +178,8 @@ def train_ad_vae(config: TrainADVaeConfig):
     return best_save_dict
 
 
-def init_and_train_ad_vae(args):
-    assert args.model_name == "vae"
+def init_and_train_ad_fastflow(args):
+    assert args.model_name == "fastflow"
     assert args.dataset_name == "mvtec"
     config = TrainADVaeConfig(
         num_epochs = args.num_epochs,
@@ -216,6 +193,6 @@ def init_and_train_ad_vae(args):
         contrastive_scale = args.contrast_scale
     )
 
-    train_ret = train_ad_vae(config)
+    train_ret = train_ad_fastflow(config)
     return train_ret
 
