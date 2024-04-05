@@ -39,7 +39,6 @@ class TrainFixerVaeConfig:
     lambda3: float = 0.1
 
 
-
 def run_one_epoch(
     fixer_model,
     ad_model,
