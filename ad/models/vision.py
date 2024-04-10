@@ -80,26 +80,27 @@ class FastflowAdModel(FastflowModel):
         # Compute the hidden variable f: X -> Z and log-likelihood of the jacobian
         # (See Section 3.3 in the paper.)
         # NOTE: output variable has z, and jacobian tuple for each fast-flow blocks.
-        hidden_variables: list[torch.Tensor] = []
-        log_jacobians: list[torch.Tensor] = []
-        score = []
+        hidden_vars: list[torch.Tensor] = []
+        log_jacs: list[torch.Tensor] = []
+        score = torch.zeros(N).to(x.device) # big numbers because it's log prob
+
 
         for fast_flow_block, feature in zip(self.fast_flow_blocks, features, strict=True):
-            hidden_variable, log_jacobian = fast_flow_block(feature)
-            log_jacobian = log_jacobian / (C*H*W)   # Apply this scaling because we mean along (C,H,W)
-            hidden_variables.append(hidden_variable)
-            log_jacobians.append(log_jacobian)
-            score.append(0.5 * torch.mean(hidden_variable**2, dim=(1,2,3)) - log_jacobian) # (N,)
+            hidden_var, log_jac = fast_flow_block(feature)
+            hidden_vars.append(hidden_var)
+            log_jacs.append(log_jac)
+            score += 0.5 * torch.mean(hidden_var**2, dim=(1,2,3)) - (log_jac/(C*H*W))
 
-        score = torch.stack(score, dim=-1).sum(dim=-1)   # (N,)
-        alpha = self.anomaly_map_generator(hidden_variables)    # (N,1,H,W)
+        # print(score)
+
+        alpha = self.anomaly_map_generator(hidden_vars)    # (N,1,H,W)
 
         return ADModelOutput(
             score = score,
             alpha = alpha,
             others = {
-                "hidden_variables": hidden_variables,
-                "log_jacobians": log_jacobians
+                "hidden_variables": hidden_vars,
+                "log_jacobians": log_jacs
             }
         )
 

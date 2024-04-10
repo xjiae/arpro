@@ -15,19 +15,21 @@ def parse_args():
     
     # Model-specific parameters
     parser.add_argument("--dataset_name", type=str, default="mvtec")
+    parser.add_argument("--unet2d_ch", type=int, default=224) # Base multiplier for unet2d channels
     
     # Dataset-specific parameters
     parser.add_argument("--mvtec_category", type=str, default="transistor")
 
     # Training-specific details
-    parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--num_epochs", type=int, default=100)
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--num_epochs", type=int, default=300)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--device", type=str, default="cuda")
 
     parser.add_argument("--output_dir",
         default=str(Path(Path(__file__).parent.resolve(), "_dump")))
+
 
     # Wandb
     parser.add_argument("--wandb", action="store_true")
@@ -40,10 +42,14 @@ if __name__ == "__main__":
     args = parse_args()
 
 
-    if args.ad_model_name == "vae" and args.dataset_name == "mvtec":
+    if args.model_name == "diffusion":
+        init_and_pretrain_diffusion(args)
+
+    elif args.ad_model_name == "vae" and args.dataset_name == "mvtec":
         init_and_train_fixer_vae(args)
-    if args.ad_model_name == "fastflow" and args.dataset_name == "mvtec":
+
+    elif args.ad_model_name == "fastflow" and args.dataset_name == "mvtec":
         init_and_train_fixer_fastflow(args)
 
-
+    
 

@@ -20,12 +20,15 @@ def parse_args():
 
     parser.add_argument("--efficientad_imagenette_dir", type=str,
         default=str(Path(Path(__file__).parent.resolve(), "data", "imagenette")))
+    
+    parser.add_argument("--efficientad_pretrained_download_dir",
+        default=str(Path(Path(__file__).parent.resolve(), "data", "efficientad_downloads")))
 
     # Training-specific details
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--lr", type=float, default=1e-5)
     parser.add_argument("--num_epochs", type=int, default=50)
     parser.add_argument("--seed", type=int, default=1234)
-    parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument("--batch_size", type=int, default=32)
 
     parser.add_argument("--device", type=str, default="cuda")
 
