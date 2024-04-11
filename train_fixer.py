@@ -15,13 +15,12 @@ def parse_args():
     
     # Model-specific parameters
     parser.add_argument("--dataset_name", type=str, default="mvtec")
-    parser.add_argument("--unet2d_ch", type=int, default=224) # Base multiplier for unet2d channels
     
     # Dataset-specific parameters
     parser.add_argument("--mvtec_category", type=str, default="transistor")
 
     # Training-specific details
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--num_epochs", type=int, default=300)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--batch_size", type=int, default=8)

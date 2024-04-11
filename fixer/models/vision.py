@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from .common import *
 from diffusers.models import AutoencoderKL, UNet2DModel
-from diffusers import DDPMPipeline, DDIMScheduler
+from diffusers import DDPMPipeline, DDPMScheduler
 
 
 class VaeFixerModel(nn.Module):
@@ -45,7 +45,7 @@ class VaeFixerModel(nn.Module):
 
 class MyDiffusionModel(nn.Module):
     """
-    This is a wrapper around a DDPM/DDIM diffusion pipeline for convenience.
+    This is a wrapper around a DDPM diffusion pipeline for convenience.
     We should be able to do the following tasks:
         * Unconditional image generation
         * "Conditional" image generation (i.e. starting from initial x)
@@ -57,19 +57,38 @@ class MyDiffusionModel(nn.Module):
         self,
         image_size: int = 256,
         image_channels: int = 3,
-        unet2d_block_out_channels: Tuple[int,...] = (224, 448, 672, 896), # Default from hugging face
         **kwargs
     ):
         super().__init__()
         self.image_size = image_size
         self.image_channels = image_channels
+
+        # Taken from: https://huggingface.co/docs/diffusers/en/tutorials/basic_training
         self.unet = UNet2DModel(
             sample_size = image_size,
             in_channels = image_channels,
             out_channels = image_channels,
+            layers_per_block = 2,
+            block_out_channels = (128, 128, 256, 256, 512, 512),
+            down_block_types = (
+                "DownBlock2D",  # a regular ResNet downsampling block
+                "DownBlock2D",
+                "DownBlock2D",
+                "DownBlock2D",
+                "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
+                "DownBlock2D",
+            ),
+            up_block_types = (
+                "UpBlock2D",  # a regular ResNet upsampling block
+                "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
+                "UpBlock2D",
+                "UpBlock2D",
+                "UpBlock2D",
+                "UpBlock2D",
+            ),
         )
-        self.scheduler = DDIMScheduler(**kwargs)
-        self.pipeline = DDPMPipeline(self.unet, self.scheduler)
+
+        self.scheduler = DDPMScheduler(**kwargs)
 
     @property
     def num_timesteps(self):
@@ -78,7 +97,7 @@ class MyDiffusionModel(nn.Module):
     def add_noise(self, x: torch.FloatTensor, noise: torch.FloatTensor, t: torch.LongTensor):
         return self.scheduler.add_noise(x, noise, t)
 
-    def estimate_noise(self, xt, t, **kwargs):
+    def estimate_noise(self, xt, t):
         return self.unet(xt, t, return_dict=False)[0]
 
     def forward(
@@ -86,24 +105,26 @@ class MyDiffusionModel(nn.Module):
         x: Optional[torch.FloatTensor] = None,
         t: Optional[torch.FloatTensor] = None,
         batch_size: Optional[int] = None,
-        eta: float = 0.0,
         num_inference_steps: int = 1000,
         progress_bar: bool = False,
         enable_grad: bool = False
     ):
         """
-        Copied code from the __call__ function of DDIM pipeline
+        Copied code from the __call__ function of DDPM pipeline
         """
 
         # If the seed is not provided, start from some random stuff
         if x is None:
             assert batch_size is not None
-            image = torch.randn(batch_size, self.image_channels, self.image_size, self.image_size)
+            image = torch.randn(
+                    batch_size, self.image_channels, self.image_size, self.image_size,
+                    device = next(self.unet.parameters()).device
+                )
 
         # Otherwise we start from the seed x, and noise is to t steps
         else:
             noise = torch.randn_like(x)
-            t = torch.LongTensor([self.num_timesteps if t is None else t]) - 1
+            t = torch.LongTensor([self.num_timesteps-1 if t is None else t])    # Off-by-one
             image = self.add_noise(x, noise, t)
 
         # set step values

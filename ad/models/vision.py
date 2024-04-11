@@ -51,13 +51,12 @@ class FastflowAdModel(FastflowModel):
     """ We sub-class the FastflowModel because their forward function gives us too little """
     def __init__(
         self,
-        image_height: int = 256,
-        image_width: int = 256,
+        image_size: int = 256,
         backbone: str = "wide_resnet50_2",
         **kwargs
     ):
         super().__init__(
-            input_size = (image_height, image_width),
+            input_size = (image_size, image_size),
             backbone = backbone
         )
 

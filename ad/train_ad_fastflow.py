@@ -26,8 +26,7 @@ class TrainADVaeConfig:
     do_save: bool = True
     output_dir: Optional[str] = None
     image_channels: int = 3
-    image_height: int = 256
-    image_width: int = 256
+    image_size: int = 256
     backbone = "wide_resnet50_2"
     warmup_ratio: float = 0.1
     eval_every: int = 5
@@ -79,8 +78,7 @@ def run_one_epoch(
 def train_ad_fastflow(config: TrainADVaeConfig):
     """ Set up the models, dataloaders, optimizers, etc and start training """
     model = FastflowAdModel(
-        image_height = config.image_height,
-        image_width = config.image_width,
+        image_size = config.image_size,
         backbone = config.backbone
     )
     if config.device is not None:

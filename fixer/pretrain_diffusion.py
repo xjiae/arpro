@@ -20,8 +20,7 @@ class PretrainMyDiffusionConfig:
     mvtec_category: str
     num_epochs: int
     lr: float
-    batch_size: int
-    unet2d_ch: int = 224
+    batch_size: int = 2
     device: Optional[str] = None
     do_save: bool = True
     output_dir: Optional[str] = None
@@ -33,7 +32,8 @@ def run_one_epoch(
     dataloader,
     train_or_eval: str,
     config: PretrainMyDiffusionConfig,
-    optimizer = None
+    optimizer = None,
+    lr_scheduler = None
 ):
     assert train_or_eval in ["train", "eval"]
     device = next(diff_model.parameters()).device
@@ -44,6 +44,7 @@ def run_one_epoch(
     for batch in pbar:
         # Sample a random time step for each image
         x = batch["image"].to(device)
+        x = 2*x - 1  # Scale a [0,1] image to [-1,+1]
         noise = torch.randn_like(x)
 
         t = torch.randint(0, diff_model.num_timesteps, (x.size(0),)).to(device)
@@ -56,13 +57,16 @@ def run_one_epoch(
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
+                lr_scheduler.step()
 
         num_dones += x.size(0)
         acc_loss += loss * x.size(0)
 
         avg_loss = acc_loss / num_dones
+
         desc = "[train] " if train_or_eval == "train" else "[eval]  "
-        desc += f"N {num_dones}, loss {avg_loss:.4f}"
+        desc += f"N {num_dones}, loss {avg_loss:.4f}, "
+        desc += f"lr {lr_scheduler.get_last_lr()[0]:.6f} " if train_or_eval == "train" else ""
         pbar.set_description(desc)
 
     return {
@@ -72,9 +76,7 @@ def run_one_epoch(
 
 
 def pretrain_diffusion(config: PretrainMyDiffusionConfig):
-    diff_model = MyDiffusionModel(
-        unet2d_block_out_channels = tuple([config.unet2d_ch * i for i in [1,2,3,4]])
-    )
+    diff_model = MyDiffusionModel()
 
     if config.device is not None:
         diff_model.to(config.device)
@@ -91,16 +93,17 @@ def pretrain_diffusion(config: PretrainMyDiffusionConfig):
         lr = config.lr
     )
 
-    warmup_epochs = int(config.num_epochs * config.warmup_ratio)
-    decay_epochs = config.num_epochs - warmup_epochs
+    num_train_steps = len(train_dataloader) * config.num_epochs
+    warmup_steps = int(num_train_steps * config.warmup_ratio)
+    decay_steps = num_train_steps - warmup_steps
 
     lr_scheduler = SequentialLR(
         optimizer,
         schedulers = [
-            LinearLR(optimizer, start_factor=0.01, end_factor=1.00, total_iters=warmup_epochs),
-            LinearLR(optimizer, start_factor=1.00, end_factor=0.01, total_iters=decay_epochs)
+            LinearLR(optimizer, start_factor=0.10, end_factor=1.00, total_iters=warmup_steps),
+            LinearLR(optimizer, start_factor=1.00, end_factor=0.01, total_iters=decay_steps)
         ],
-        milestones = [warmup_epochs]
+        milestones = [warmup_steps]
     )
 
     run_name = f"fixer_diffusion_mvtec_{config.mvtec_category}"
@@ -116,15 +119,20 @@ def pretrain_diffusion(config: PretrainMyDiffusionConfig):
     best_loss = None
 
     for epoch in range(1, config.num_epochs+1):
-        print(f"epochs {epoch}/{config.num_epochs}, lr {lr_scheduler.get_last_lr()[0]:.6f}")
-        train_stats = run_one_epoch(diff_model, train_dataloader, "train", config, optimizer=optimizer)
-        
-        lr_scheduler.step()
+        print(f"epochs {epoch}/{config.num_epochs}, start_lr {lr_scheduler.get_last_lr()[0]:.6f}")
+        train_stats = run_one_epoch(
+            diff_model,
+            train_dataloader,
+            "train",
+            config,
+            optimizer = optimizer,
+            lr_scheduler = lr_scheduler
+        )
 
         save_dict = {
             "epoch": epoch,
             "train_loss": train_stats["loss"],
-            "diff_model_state_dict": {k: v.cpu() for (k,v) in diff_model_state_dict().items()},
+            "model_state_dict": {k: v.cpu() for (k,v) in diff_model.state_dict().items()},
             "optimizer_state_dict": optimizer.state_dict(),
             "lr_scheduler_state_dict": lr_scheduler.state_dict(),
         }
@@ -148,7 +156,6 @@ def init_and_pretrain_diffusion(args):
     assert args.model_name == "diffusion"
     assert args.dataset_name == "mvtec"
     config = PretrainMyDiffusionConfig(
-        unet2d_ch = args.unet2d_ch,
         num_epochs = args.num_epochs,
         lr = args.lr,
         mvtec_category = args.mvtec_category,
