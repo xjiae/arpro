@@ -17,8 +17,9 @@ from datasets import get_ad_dataloader
 
 
 @dataclass
-class TrainADVaeConfig:
-    mvtec_category: str
+class TrainADFastflowConfig:
+    dataset_name: str
+    category: str
     num_epochs: int
     lr: float
     batch_size: int
@@ -26,17 +27,19 @@ class TrainADVaeConfig:
     do_save: bool = True
     output_dir: Optional[str] = None
     image_channels: int = 3
-    image_size: int = 256
-    backbone = "wide_resnet50_2"
+    image_size: int = 512
+    backbone: str = "wide_resnet50_2"
     warmup_ratio: float = 0.1
     eval_every: int = 5
     wandb_project: str = "arpro"
+    aug_noise_scale = 10.
+
 
 def run_one_epoch(
     model,
     dataloader,
     train_or_eval: str,
-    config: TrainADVaeConfig,
+    config: TrainADFastflowConfig,
     optimizer = None,
 ):
     assert train_or_eval in ["train", "eval"]
@@ -48,6 +51,9 @@ def run_one_epoch(
     for i, batch in enumerate(pbar):
         x = batch["image"].to(device)
         x = 2*x - 1 # Scale to [-1,+1]
+
+        # Add some noise
+        x += config.aug_noise_scale * torch.randn_like(x) * torch.rand(x.size(0),1,1,1).to(x.device)
 
         with torch.set_grad_enabled(train_or_eval == "train"):
             out = model(x)
@@ -75,7 +81,7 @@ def run_one_epoch(
     }
 
 
-def train_ad_fastflow(config: TrainADVaeConfig):
+def train_ad_fastflow(config: TrainADFastflowConfig):
     """ Set up the models, dataloaders, optimizers, etc and start training """
     model = FastflowAdModel(
         image_size = config.image_size,
@@ -85,17 +91,19 @@ def train_ad_fastflow(config: TrainADVaeConfig):
         model.to(config.device)
 
     train_dataloader = get_ad_dataloader(
-        dataset_name = "mvtec",
+        dataset_name = config.dataset_name,
         batch_size = config.batch_size,
-        category = config.mvtec_category,
-        split = "train"
+        category = config.category,
+        split = "train",
+        image_size = config.image_size,
     )
 
     eval_dataloader = get_ad_dataloader(
-        dataset_name = "mvtec",
+        dataset_name = config.dataset_name,
         batch_size = config.batch_size,
-        category = config.mvtec_category,
-        split = "test"
+        category = config.category,
+        split = "test",
+        image_size = config.image_size,
     )
 
     optimizer = torch.optim.AdamW(
@@ -115,7 +123,7 @@ def train_ad_fastflow(config: TrainADVaeConfig):
         milestones = [warmup_epochs]
     )
 
-    run_name = f"ad_fast_mvtec_{config.mvtec_category}"
+    run_name = f"ad_noisy_fast_{config.backbone}_{config.dataset_name}_{config.category}_{config.image_size}"
 
     if config.do_save:
         assert config.output_dir is not None and Path(config.output_dir).is_dir()
@@ -171,15 +179,17 @@ def train_ad_fastflow(config: TrainADVaeConfig):
 
 
 def init_and_train_ad_fastflow(args):
-    assert args.model_name == "fastflow"
-    assert args.dataset_name == "mvtec"
-    config = TrainADVaeConfig(
-        num_epochs = args.num_epochs,
+    assert args.model == "fastflow"
+    config = TrainADFastflowConfig(
+        dataset_name = args.dataset,
+        num_epochs = args.epochs,
         lr = args.lr,
-        mvtec_category = args.mvtec_category,
+        category = args.category,
         batch_size = args.batch_size,
         device = args.device,
         output_dir = args.output_dir,
+        backbone = args.backbone,
+        image_size=args.image_size
     )
 
     train_ret = train_ad_fastflow(config)

@@ -18,10 +18,12 @@ from datasets import get_fixer_dataloader
 
 @dataclass
 class TrainFixerVaeConfig:
-    mvtec_category: str
+    dataset: str
+    category: str
     num_epochs: int
     lr: float
     batch_size: int
+    image_size: int = 512
     device: Optional[str] = None
     do_save: bool = True
     output_dir: Optional[str] = None
@@ -198,16 +200,16 @@ def train_fixer_fastflow(config: TrainFixerVaeConfig):
         ad_model.to(config.device)
 
     train_dataloader = get_fixer_dataloader(
-        dataset_name = "mvtec",
+        dataset_name = config.dataset,
         batch_size = config.batch_size,
-        category = config.mvtec_category,
+        category = config.category,
         split = "train"
     )
 
     eval_dataloader = get_fixer_dataloader(
-        dataset_name = "mvtec",
+        dataset_name = config.dataset,
         batch_size = config.batch_size,
-        category = config.mvtec_category,
+        category = config.category,
         split = "test"
     )
 
@@ -228,7 +230,7 @@ def train_fixer_fastflow(config: TrainFixerVaeConfig):
         milestones = [warmup_epochs]
     )
 
-    run_name = f"fixer_fast_mvtec_{config.mvtec_category}"
+    run_name = f"fixer_fast_{config.dataset}_{config.category}"
 
     if config.do_save:
         assert config.output_dir is not None and Path(config.output_dir).is_dir()
@@ -284,20 +286,20 @@ def train_fixer_fastflow(config: TrainFixerVaeConfig):
 
 
 def init_and_train_fixer_fastflow(args):
-    assert args.model_name == "vae"
     assert args.ad_model_name == "fastflow"
-    assert args.dataset_name == "mvtec"
 
-    ad_model_path = Path(args.output_dir, f"ad_fast_mvtec_{args.mvtec_category}_best.pt")
+    ad_model_path = Path(args.output_dir, f"ad_noisy_fast_{args.dataset}_{args.category}_best.pt")
 
     config = TrainFixerVaeConfig(
+        dataset = args.dataset,
         num_epochs = args.num_epochs,
         lr = args.lr,
-        mvtec_category = args.mvtec_category,
+        category = args.category,
         batch_size = args.batch_size,
         device = args.device,
         output_dir = args.output_dir,
         ad_model_path = ad_model_path,
+        image_size=args.image_size
     )
 
     train_ret = train_fixer_fastflow(config)

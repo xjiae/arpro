@@ -117,14 +117,18 @@ class MyDiffusionModel(nn.Module):
         if x is None:
             assert batch_size is not None
             image = torch.randn(
-                    batch_size, self.image_channels, self.image_size, self.image_size,
-                    device = next(self.unet.parameters()).device
-                )
+                batch_size, self.image_channels, self.image_size, self.image_size,
+                device = next(self.unet.parameters()).device
+            )
 
         # Otherwise we start from the seed x, and noise is to t steps
         else:
             noise = torch.randn_like(x)
-            t = torch.LongTensor([self.num_timesteps-1 if t is None else t])    # Off-by-one
+            if t is None:
+                t = torch.LongTensor([self.num_timesteps-1]).to(x.device)
+            elif isinstance(t, int):
+                t = torch.LongTensor([t]).to(x.device)
+
             image = self.add_noise(x, noise, t)
 
         # set step values

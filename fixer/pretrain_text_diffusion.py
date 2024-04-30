@@ -1,5 +1,6 @@
 import sys
 import os
+import math
 from pathlib import Path
 from typing import Optional
 import torch
@@ -11,7 +12,7 @@ from dataclasses import dataclass
 
 from tqdm import tqdm
 
-from .models import MyDiffusionModel
+from .models import MyTextDiffusionModel
 from datasets import get_fixer_dataloader
 
 
@@ -26,13 +27,12 @@ class PretrainMyDiffusionConfig:
     do_save: bool = True
     output_dir: Optional[str] = None
     warmup_ratio: float = 0.1
-    image_size: int=512
     wandb_project: str = "arpro"
     
 
 
 def run_one_epoch(
-    diff_model: MyDiffusionModel,
+    diff_model: MyTextDiffusionModel,
     dataloader,
     train_or_eval: str,
     config: PretrainMyDiffusionConfig,
@@ -47,18 +47,35 @@ def run_one_epoch(
 
     for batch in pbar:
         # Sample a random time step for each image
-        x = batch["image"].to(device)
-        x = 2*x - 1  # Scale a [0,1] image to [-1,+1]
-        noise = torch.randn_like(x)
-
+        
+        input_ids = batch[0].to(device)
+        # print(diff_model.tokenizer.decode(input_ids[0]))
+        position_ids = diff_model.model.bert.embeddings.position_ids[:, 0 : input_ids.size(1)]
+        position_embeddings = diff_model.model.bert.embeddings.position_embeddings(position_ids)
+        token_type_ids = torch.zeros(input_ids.size(0),diff_model.max_len).long().to(device)
+        token_type_embeddings = diff_model.model.bert.embeddings.token_type_embeddings(token_type_ids)
+        
+        x = diff_model.model.bert.embeddings.word_embeddings(input_ids)
+        noise = torch.randn_like(x)/math.sqrt(diff_model.model.config.hidden_size)
         t = torch.randint(0, diff_model.num_timesteps, (x.size(0),)).to(device)
-        noised_images = diff_model.add_noise(x, noise, t)
+        time_embedding = diff_model.time_embed(t).unsqueeze(1)
+        noised_text = diff_model.add_noise(x, noise, t)
+        noised_text += token_type_embeddings + position_embeddings + time_embedding
+        noised_text = diff_model.model.bert.embeddings.LayerNorm(noised_text)
 
         with torch.set_grad_enabled(train_or_eval == "train"):
-            noise_pred = diff_model.estimate_noise(noised_images, t)
-            loss = F.mse_loss(noise_pred, noise)
+
+            noise_pred, pred_scores = diff_model.estimate_noise(noised_text, t)
+            pred_ids = torch.argmax(pred_scores,-1).long()
+            # print("---------")
+            # print(diff_model.tokenizer.decode(pred_ids[0]))
+            # breakpoint()
+            loss = F.cross_entropy(pred_scores.view(-1, diff_model.model.config.vocab_size), \
+                                   input_ids.flatten(), ignore_index=0)
+            # loss = F.mse_loss(noise_pred, noise)
             if train_or_eval == "train":
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(diff_model.parameters(), 1.0)
                 optimizer.step()
                 optimizer.zero_grad()
                 lr_scheduler.step()
@@ -82,9 +99,8 @@ def run_one_epoch(
     }
 
 
-def pretrain_diffusion(config: PretrainMyDiffusionConfig):
-    
-    diff_model = MyDiffusionModel(image_size=config.image_size)
+def pretrain_text_diffusion(config: PretrainMyDiffusionConfig):
+    diff_model = MyTextDiffusionModel()
 
     if config.device is not None:
         diff_model.to(config.device)
@@ -92,7 +108,6 @@ def pretrain_diffusion(config: PretrainMyDiffusionConfig):
     
     train_dataloader = get_fixer_dataloader(
     dataset_name = config.dataset,
-    image_size=config.image_size,
     batch_size = config.batch_size,
     category = config.category,
     split = "train")
@@ -116,7 +131,7 @@ def pretrain_diffusion(config: PretrainMyDiffusionConfig):
         milestones = [warmup_steps]
     )
 
-    run_name = f"fixer_diffusion_{config.dataset}_{config.category}"
+    run_name = f"fixer_diffusion_{config.dataset}"
 
     if config.do_save:
         assert config.output_dir is not None and Path(config.output_dir).is_dir()
@@ -124,7 +139,6 @@ def pretrain_diffusion(config: PretrainMyDiffusionConfig):
         best_saveto = str(Path(config.output_dir, run_name + "_best.pt"))
     else:
         print(f"Warning: will NOT save diff_models")
-
     # Setup wandb
     wandb_key = os.getenv("WANDB_ANOMALY_PROJECT_KEY")
     wandb.login(key=wandb_key)
@@ -132,7 +146,6 @@ def pretrain_diffusion(config: PretrainMyDiffusionConfig):
         project = config.wandb_project,
         name = run_name,
     )
-
 
     best_loss = None
 
@@ -173,8 +186,8 @@ def pretrain_diffusion(config: PretrainMyDiffusionConfig):
     return best_save_dict
 
 
-def init_and_pretrain_diffusion(args):
-    assert args.model == "diffusion"
+def init_and_pretrain_text_diffusion(args):
+    assert args.model == "textdiffusion"
     config = PretrainMyDiffusionConfig(
         dataset = args.dataset,
         num_epochs = args.num_epochs,
@@ -183,8 +196,7 @@ def init_and_pretrain_diffusion(args):
         batch_size = args.batch_size,
         device = args.device,
         output_dir = args.output_dir,
-        image_size=args.image_size
     )
 
-    train_ret = pretrain_diffusion(config)
+    train_ret = pretrain_text_diffusion(config)
     return train_ret

@@ -181,3 +181,4 @@
 [I 2024-04-10 13:56:43.622 ServerApp] Saving file at /diffusion_test.ipynb
 [W 2024-04-10 13:56:43.622 ServerApp] Notebook diffusion_test.ipynb is not trusted
 [I 2024-04-10 14:13:35.572 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4169884b-7b10-4fc9-b3d4-06d231863f5e
+[I 2024-04-12 11:42:08.767 ServerApp] AsyncIOLoopKernelRestarter: restarting kernel (1/5), keep random ports

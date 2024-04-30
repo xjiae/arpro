@@ -8,17 +8,18 @@ from ad.models import *
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_name", type=str, default="vae")
+
+    parser.add_argument("--model", type=str, default="diffusion")
 
     # The AD model used to evaluate stuffs with
-    parser.add_argument("--ad_model_name", type=str, default="vae")
+    parser.add_argument("--ad_model", type=str, default="vae")
     
     # Model-specific parameters
-    parser.add_argument("--dataset_name", type=str, default="mvtec")
+    parser.add_argument("--dataset", type=str, default="mvtec")
     
     # Dataset-specific parameters
-    parser.add_argument("--mvtec_category", type=str, default="transistor")
-
+    parser.add_argument("--category", type=str, default="transistor")
+    parser.add_argument("--image_size", type=int, default=256)
     # Training-specific details
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument("--num_epochs", type=int, default=300)
@@ -41,13 +42,16 @@ if __name__ == "__main__":
     args = parse_args()
 
 
-    if args.model_name == "diffusion":
+    if args.model == "diffusion":
         init_and_pretrain_diffusion(args)
 
-    elif args.ad_model_name == "vae" and args.dataset_name == "mvtec":
+    elif args.model == "textdiffusion":
+        init_and_pretrain_text_diffusion(args)
+
+    elif args.ad_model == "vae":
         init_and_train_fixer_vae(args)
 
-    elif args.ad_model_name == "fastflow" and args.dataset_name == "mvtec":
+    elif args.ad_model== "fastflow":
         init_and_train_fixer_fastflow(args)
 
     
