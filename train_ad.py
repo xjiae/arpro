@@ -53,6 +53,8 @@ if __name__ == "__main__":
         init_and_train_ad_efficient_ad(args)
     if args.model == "fastflow":
         init_and_train_ad_fastflow(args)
+    if args.model == "gpt2":
+        init_and_train_ad_gpt2(args)
 
 
 

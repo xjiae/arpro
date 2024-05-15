@@ -1,184 +1,60 @@
-[I 2024-04-09 22:07:19.447 ServerApp] jupyter_lsp | extension was successfully linked.
-[I 2024-04-09 22:07:19.449 ServerApp] jupyter_server_terminals | extension was successfully linked.
-[I 2024-04-09 22:07:19.452 ServerApp] jupyterlab | extension was successfully linked.
-[I 2024-04-09 22:07:19.454 ServerApp] notebook | extension was successfully linked.
-[I 2024-04-09 22:07:19.577 ServerApp] notebook_shim | extension was successfully linked.
-[I 2024-04-09 22:07:19.592 ServerApp] notebook_shim | extension was successfully loaded.
-[I 2024-04-09 22:07:19.593 ServerApp] jupyter_lsp | extension was successfully loaded.
-[I 2024-04-09 22:07:19.593 ServerApp] jupyter_server_terminals | extension was successfully loaded.
-[I 2024-04-09 22:07:19.595 LabApp] JupyterLab extension loaded from /home/antonxue/lib/miniconda3/envs/arpro/lib/python3.11/site-packages/jupyterlab
-[I 2024-04-09 22:07:19.595 LabApp] JupyterLab application directory is /home/antonxue/lib/miniconda3/envs/arpro/share/jupyter/lab
-[I 2024-04-09 22:07:19.596 LabApp] Extension Manager is 'pypi'.
-[I 2024-04-09 22:07:19.604 ServerApp] jupyterlab | extension was successfully loaded.
-[I 2024-04-09 22:07:19.605 ServerApp] notebook | extension was successfully loaded.
-[I 2024-04-09 22:07:19.605 ServerApp] Serving notebooks from local directory: /home/antonxue/foo/arpro/notebooks
-[I 2024-04-09 22:07:19.605 ServerApp] Jupyter Server 2.13.0 is running at:
-[I 2024-04-09 22:07:19.605 ServerApp] http://localhost:7778/tree?token=b1e5845f467cef84363e7166d694fc9e4952c2a24abf8af9
-[I 2024-04-09 22:07:19.605 ServerApp]     http://127.0.0.1:7778/tree?token=b1e5845f467cef84363e7166d694fc9e4952c2a24abf8af9
-[I 2024-04-09 22:07:19.605 ServerApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
-[W 2024-04-09 22:07:19.608 ServerApp] No web browser found: Error('could not locate runnable browser').
-[C 2024-04-09 22:07:19.609 ServerApp] 
+[I 2024-05-09 16:21:02.448 ServerApp] jupyter_lsp | extension was successfully linked.
+[I 2024-05-09 16:21:02.451 ServerApp] jupyter_server_terminals | extension was successfully linked.
+[I 2024-05-09 16:21:02.453 ServerApp] jupyterlab | extension was successfully linked.
+[I 2024-05-09 16:21:02.455 ServerApp] notebook | extension was successfully linked.
+[I 2024-05-09 16:21:02.573 ServerApp] notebook_shim | extension was successfully linked.
+[I 2024-05-09 16:21:02.591 ServerApp] notebook_shim | extension was successfully loaded.
+[I 2024-05-09 16:21:02.592 ServerApp] jupyter_lsp | extension was successfully loaded.
+[I 2024-05-09 16:21:02.592 ServerApp] jupyter_server_terminals | extension was successfully loaded.
+[I 2024-05-09 16:21:02.596 LabApp] JupyterLab extension loaded from /home/antonxue/lib/miniconda3/envs/arpro/lib/python3.11/site-packages/jupyterlab
+[I 2024-05-09 16:21:02.596 LabApp] JupyterLab application directory is /home/antonxue/lib/miniconda3/envs/arpro/share/jupyter/lab
+[I 2024-05-09 16:21:02.596 LabApp] Extension Manager is 'pypi'.
+[I 2024-05-09 16:21:02.603 ServerApp] jupyterlab | extension was successfully loaded.
+[I 2024-05-09 16:21:02.604 ServerApp] notebook | extension was successfully loaded.
+[I 2024-05-09 16:21:02.605 ServerApp] Serving notebooks from local directory: /home/antonxue/foo/arpro/notebooks
+[I 2024-05-09 16:21:02.605 ServerApp] Jupyter Server 2.13.0 is running at:
+[I 2024-05-09 16:21:02.605 ServerApp] http://localhost:7778/tree?token=826a55e9c026aa6084253905862b088f2768f9cb28da46fb
+[I 2024-05-09 16:21:02.605 ServerApp]     http://127.0.0.1:7778/tree?token=826a55e9c026aa6084253905862b088f2768f9cb28da46fb
+[I 2024-05-09 16:21:02.605 ServerApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[W 2024-05-09 16:21:02.608 ServerApp] No web browser found: Error('could not locate runnable browser').
+[C 2024-05-09 16:21:02.608 ServerApp] 
     
     To access the server, open this file in a browser:
-        file:///home/antonxue/.local/share/jupyter/runtime/jpserver-2283032-open.html
+        file:///home/antonxue/.local/share/jupyter/runtime/jpserver-4162116-open.html
     Or copy and paste one of these URLs:
-        http://localhost:7778/tree?token=b1e5845f467cef84363e7166d694fc9e4952c2a24abf8af9
-        http://127.0.0.1:7778/tree?token=b1e5845f467cef84363e7166d694fc9e4952c2a24abf8af9
-[I 2024-04-09 22:07:19.618 ServerApp] Skipped non-installed server(s): bash-language-server, dockerfile-language-server-nodejs, javascript-typescript-langserver, jedi-language-server, julia-language-server, pyright, python-language-server, python-lsp-server, r-languageserver, sql-language-server, texlab, typescript-language-server, unified-language-server, vscode-css-languageserver-bin, vscode-html-languageserver-bin, vscode-json-languageserver-bin, yaml-language-server
-[I 2024-04-09 22:07:29.386 ServerApp] Kernel started: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:07:29.755 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:08:51.382 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:08:51.961 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:43eb0f02-10e5-4808-a554-6a0cb04adbad
-[I 2024-04-09 22:08:53.577 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:10:53.509 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:12:22.070 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:12:22.233 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:14:22.279 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:16:22.325 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:17:24.305 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:17:24.318 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:17:24.329 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:17:24.329 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:18:22.379 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:20:22.429 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:22:12.085 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:22:12.181 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:22:12.189 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:22:12.189 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:22:22.469 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:24:00.300 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:24:00.417 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:24:00.424 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:24:00.424 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:24:22.517 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:26:05.932 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:26:05.963 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:26:05.969 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:26:05.969 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:26:07.940 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:26:08.006 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:26:08.011 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:26:08.011 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:26:22.566 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:28:22.655 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:30:22.697 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:38:22.746 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:38:44.316 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:38:44.438 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:38:44.448 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:38:44.448 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:40:22.555 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:40:22.563 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:40:22.571 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:40:22.571 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:40:22.793 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:41:48.202 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4cc86388-369c-4600-aa6d-494c07c171fd
-[I 2024-04-09 22:41:49.970 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:43:40.479 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:43:40.579 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:43:40.589 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:43:40.589 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:43:49.777 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:45:05.524 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:45:05.532 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:45:05.542 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:45:05.543 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:45:25.294 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:45:25.299 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:45:25.303 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:45:25.303 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:45:49.810 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:45:49.817 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:45:49.819 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:45:49.831 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:45:49.831 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:46:42.363 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:47:07.899 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:47:07.907 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:47:07.914 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:47:07.914 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:48:42.404 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:50:28.986 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:50:28.993 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:50:28.998 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:50:28.998 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:50:42.448 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:52:42.499 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:52:54.288 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:52:54.296 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:52:54.304 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:52:54.304 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:54:18.990 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:54:19.026 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:54:19.033 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:54:19.033 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:54:42.539 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:55:13.661 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:55:16.206 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 22:55:16.212 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:55:16.220 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 22:55:16.220 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 22:57:13.700 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 22:59:13.748 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 23:02:39.890 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 23:02:39.980 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:02:39.986 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 23:02:39.986 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:03:13.797 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 23:04:57.009 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 23:04:57.092 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:04:57.097 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 23:04:57.097 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:05:13.845 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 23:07:09.445 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 23:07:09.494 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:07:09.499 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 23:07:09.499 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:07:13.894 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 23:08:26.974 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 23:08:27.015 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:08:27.021 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 23:08:27.021 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:09:13.988 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 23:15:28.955 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 23:15:29.002 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:15:29.008 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 23:15:29.008 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:17:14.028 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 23:19:14.076 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 23:19:35.686 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 23:19:35.695 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:19:35.701 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 23:19:35.701 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:20:40.573 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 23:20:40.605 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:20:40.613 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 23:20:40.613 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:21:14.111 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 23:22:58.853 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 23:22:58.883 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:22:58.889 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 23:22:58.889 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:23:14.153 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 23:23:29.776 ServerApp] Kernel restarted: 2a2d89e2-91b6-4c23-bb87-4dafe157e700
-[I 2024-04-09 23:23:29.870 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:23:29.875 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 23:23:29.875 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:25:15.161 ServerApp] Saving file at /diffusion_test.ipynb
-[I 2024-04-09 23:26:47.254 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-09 23:27:17.149 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-09 23:27:17.149 ServerApp] Restoring connection for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-10 00:39:05.389 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:90ad7d2c-a4d9-4aeb-bebf-ac748d6f8f0d
-[I 2024-04-10 13:54:39.585 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-10 13:54:39.734 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:eccb27a2-2bc8-4b3d-9863-14d48182da8d
-[W 2024-04-10 13:54:42.370 ServerApp] Notebook diffusion_test.ipynb is not trusted
-[I 2024-04-10 13:54:43.075 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[W 2024-04-10 13:54:43.180 ServerApp] Notebook diffusion_test.ipynb is not trusted
-[I 2024-04-10 13:54:43.467 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:d1955bf6-a5fb-4fcd-9b61-806e8d4962d7
-[I 2024-04-10 13:54:43.599 ServerApp] Connecting to kernel 2a2d89e2-91b6-4c23-bb87-4dafe157e700.
-[I 2024-04-10 13:54:50.985 ServerApp] Saving file at /diffusion_test.ipynb
-[W 2024-04-10 13:54:50.985 ServerApp] Notebook diffusion_test.ipynb is not trusted
-[I 2024-04-10 13:56:43.622 ServerApp] Saving file at /diffusion_test.ipynb
-[W 2024-04-10 13:56:43.622 ServerApp] Notebook diffusion_test.ipynb is not trusted
-[I 2024-04-10 14:13:35.572 ServerApp] Starting buffering for 2a2d89e2-91b6-4c23-bb87-4dafe157e700:4169884b-7b10-4fc9-b3d4-06d231863f5e
-[I 2024-04-12 11:42:08.767 ServerApp] AsyncIOLoopKernelRestarter: restarting kernel (1/5), keep random ports
+        http://localhost:7778/tree?token=826a55e9c026aa6084253905862b088f2768f9cb28da46fb
+        http://127.0.0.1:7778/tree?token=826a55e9c026aa6084253905862b088f2768f9cb28da46fb
+[I 2024-05-09 16:21:02.617 ServerApp] Skipped non-installed server(s): bash-language-server, dockerfile-language-server-nodejs, javascript-typescript-langserver, jedi-language-server, julia-language-server, pyright, python-language-server, python-lsp-server, r-languageserver, sql-language-server, texlab, typescript-language-server, unified-language-server, vscode-css-languageserver-bin, vscode-html-languageserver-bin, vscode-json-languageserver-bin, yaml-language-server
+[I 2024-05-09 16:21:26.697 ServerApp] Creating new notebook in 
+[I 2024-05-09 16:21:27.001 ServerApp] Saving file at /Untitled.ipynb
+[I 2024-05-09 16:21:27.033 ServerApp] Kernel started: 85094aa5-60ac-47c0-ada1-6783a0dac529
+[I 2024-05-09 16:21:27.337 ServerApp] Connecting to kernel 85094aa5-60ac-47c0-ada1-6783a0dac529.
+[I 2024-05-09 16:21:27.416 ServerApp] Connecting to kernel 85094aa5-60ac-47c0-ada1-6783a0dac529.
+[I 2024-05-09 16:21:27.442 ServerApp] Connecting to kernel 85094aa5-60ac-47c0-ada1-6783a0dac529.
+[I 2024-05-09 16:21:27.582 ServerApp] Connecting to kernel 85094aa5-60ac-47c0-ada1-6783a0dac529.
+[I 2024-05-09 16:21:27.797 ServerApp] Connecting to kernel 85094aa5-60ac-47c0-ada1-6783a0dac529.
+[I 2024-05-09 16:23:34.548 ServerApp] Saving file at /diffusion_ts_test.ipynb
+[I 2024-05-09 16:25:09.943 ServerApp] Kernel restarted: 85094aa5-60ac-47c0-ada1-6783a0dac529
+[I 2024-05-09 16:25:09.998 ServerApp] Connecting to kernel 85094aa5-60ac-47c0-ada1-6783a0dac529.
+[I 2024-05-09 16:25:44.225 ServerApp] Saving file at /diffusion_ts_test.ipynb
+[I 2024-05-09 16:27:44.495 ServerApp] Saving file at /diffusion_ts_test.ipynb
+[I 2024-05-09 16:29:44.553 ServerApp] Saving file at /diffusion_ts_test.ipynb
+[I 2024-05-09 16:31:44.656 ServerApp] Saving file at /diffusion_ts_test.ipynb
+[I 2024-05-09 16:33:44.775 ServerApp] Saving file at /diffusion_ts_test.ipynb
+[I 2024-05-09 16:41:44.837 ServerApp] Saving file at /diffusion_ts_test.ipynb
+[I 2024-05-09 16:49:44.899 ServerApp] Saving file at /diffusion_ts_test.ipynb
+[I 2024-05-09 16:53:44.948 ServerApp] Saving file at /diffusion_ts_test.ipynb
+[I 2024-05-09 17:13:54.698 ServerApp] Kernel restarted: 85094aa5-60ac-47c0-ada1-6783a0dac529
+[I 2024-05-09 17:13:54.746 ServerApp] Connecting to kernel 85094aa5-60ac-47c0-ada1-6783a0dac529.
+[I 2024-05-09 17:15:06.508 ServerApp] Saving file at /diffusion_ts_test.ipynb
+[I 2024-05-09 19:46:49.367 ServerApp] Starting buffering for 85094aa5-60ac-47c0-ada1-6783a0dac529:51fbbe49-3cef-4d93-beb1-dd623f9bfc05
+[I 2024-05-09 19:47:10.529 ServerApp] interrupted
+[I 2024-05-09 19:47:10.530 ServerApp] Serving notebooks from local directory: /home/antonxue/foo/arpro/notebooks
+    1 active kernel
+    Jupyter Server 2.13.0 is running at:
+    http://localhost:7778/tree?token=826a55e9c026aa6084253905862b088f2768f9cb28da46fb
+        http://127.0.0.1:7778/tree?token=826a55e9c026aa6084253905862b088f2768f9cb28da46fb
+Shut down this Jupyter server (y/[n])? [C 2024-05-09 19:47:10.815 ServerApp] received signal 2, stopping
+[I 2024-05-09 19:47:10.816 ServerApp] Shutting down 5 extensions
+[I 2024-05-09 19:47:10.816 ServerApp] Shutting down 1 kernel
+[I 2024-05-09 19:47:10.816 ServerApp] Kernel shutdown: 85094aa5-60ac-47c0-ada1-6783a0dac529

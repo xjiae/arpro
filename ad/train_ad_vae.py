@@ -1,16 +1,13 @@
 import os
 import sys
-from pathlib import Path
 import torch
-import torch.nn.functional as F
-from torch.optim.lr_scheduler import LinearLR, SequentialLR
-
-from typing import Optional
-from dataclasses import dataclass
-
-from tqdm import tqdm
-
 import wandb
+from tqdm import tqdm
+from pathlib import Path
+from typing import Optional
+import torch.nn.functional as F
+from dataclasses import dataclass
+from torch.optim.lr_scheduler import LinearLR, SequentialLR
 
 from .models import VaeADModel
 from datasets import get_ad_dataloader
@@ -202,10 +199,10 @@ def train_ad_vae(config: TrainADVaeConfig):
 
 
 def init_and_train_ad_vae(args):
-    assert args.model_name == "vae"
-    assert args.dataset_name == "mvtec"
+    assert args.model == "vae"
+    assert args.dataset == "mvtec"
     config = TrainADVaeConfig(
-        num_epochs = args.num_epochs,
+        num_epochs = args.epochs,
         lr = args.lr,
         mvtec_category = args.mvtec_category,
         batch_size = args.batch_size,

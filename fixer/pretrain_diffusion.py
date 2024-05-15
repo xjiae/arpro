@@ -1,15 +1,14 @@
 import sys
 import os
+import torch
+import wandb
+from tqdm import tqdm
 from pathlib import Path
 from typing import Optional
-import torch
 import torch.nn.functional as F
-from torchvision import transforms
-import wandb
-from torch.optim.lr_scheduler import LinearLR, SequentialLR
 from dataclasses import dataclass
-
-from tqdm import tqdm
+from torchvision import transforms
+from torch.optim.lr_scheduler import LinearLR, SequentialLR
 
 from .models import MyDiffusionModel
 from datasets import get_fixer_dataloader
@@ -26,7 +25,7 @@ class PretrainMyDiffusionConfig:
     do_save: bool = True
     output_dir: Optional[str] = None
     warmup_ratio: float = 0.1
-    image_size: int=512
+    image_size: int = 512
     wandb_project: str = "arpro"
     
 

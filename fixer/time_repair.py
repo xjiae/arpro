@@ -4,30 +4,24 @@ import json
 import torch
 import numpy as np
 from tqdm import tqdm
-from pathlib import Path
 from typing import Optional
-import torchvision.utils as tvu
-import torch.nn.functional as F
 from dataclasses import dataclass
 
 from ad import *
 from datasets import *
-from fixer.models.vision import *
+from fixer.models.timeseries import *
 
 sys.path.insert(0, "..")
 
 @dataclass
-class VisionRepairConfig:
-    category: str
+class TimeRepairConfig:
     lr: float 
     batch_size: int
     device: Optional[str] = "cuda"
     output_dir: Optional[str] = None
-    image_folder: str = str(Path(Path(__file__).parent.resolve(), "../_dump/edit/"))
-    image_channels: int = 3
     eval_every: int = 5
     ad_model_path: Optional[str] = None
-    prop1_scale: float = 0.1
+    prop1_scale: float = 1e-3
     prop2_scale: float = 10.
     prop3_scale: float = 1.0
     prop4_scale: float = 1.0
@@ -43,39 +37,50 @@ class VisionRepairConfig:
     mask_scale_start: float = 1e-4
     mask_scale_end: float = 5e-3
 
-def vision_repair(
+def L(x_fix, x_fix_ad_out, x, ad_out, good_parts, anom_parts):
+    prop1_loss = x_fix_ad_out.score.mean()
+    prop2_loss = F.mse_loss(good_parts * x_fix, good_parts * x, reduction="sum") / good_parts.sum()
+    prop3_loss = F.relu((x_fix_ad_out.alpha - ad_out.alpha) * anom_parts).sum() / anom_parts.sum()
+    prop4_loss = F.relu((x_fix_ad_out.alpha - ad_out.alpha) * good_parts).sum() / good_parts.sum()
+    return prop1_loss, prop2_loss, prop3_loss, prop4_loss
+
+@torch.no_grad()
+def time_repair(
     x_bad: torch.FloatTensor,
-    anom_parts: torch.FloatTensor,
-    ad_model: FastflowAdModel,
-    mydiff_model: MyDiffusionModel,
-    config: VisionRepairConfig,
+    anom_parts: torch.LongTensor,
+    ad_model: GPT2ADModel,
+    mydiff_model: MyTimeDiffusionModel,
+    config: TimeRepairConfig,
     noise_level: int,
 ):
+    
     ad_out = ad_model(x_bad)
     good_parts = (1 - anom_parts).long()
-    average_colors = (x_bad * anom_parts).sum(dim=(-1,-2)) / (anom_parts.sum(dim=(-1,-2)))
-    x_bad_masked = (1-anom_parts) * x_bad + anom_parts * (average_colors.view(-1,3,1,1))
 
-    noise = torch.randn_like(x_bad_masked)
+    noise = torch.randn_like(x_bad)
     noise_amt = torch.LongTensor([noise_level]).to(x_bad.device)
-    x_fix = mydiff_model.add_noise(x_bad_masked, noise, noise_amt)
-
+    x_fix = mydiff_model.add_noise(x_bad, noise, noise_amt)
+    model_kwargs = {
+        "coef": 1e-2,
+        "learning_rate": 5e-2
+    }
     num_iters = 0
     cum_prop_loss = 0.0
     cum_L1, cum_L2, cum_L3, cum_L4 = 0.0, 0.0, 0.0, 0.0
-    pbar = tqdm(mydiff_model.scheduler.timesteps)
+    pbar = tqdm(mydiff_model.num_timesteps)
     guide_scales = torch.linspace(config.guide_scale_end, config.guide_scale_start, 1000) 
     masked_scales = torch.linspace(config.mask_scale_end, config.mask_scale_start, 1000)
-
-    for t in pbar: # This is already reversed from 999, 998, ..., 1, 0
-        with torch.no_grad():
-            xbm_noised = mydiff_model.add_noise(x_bad_masked, torch.randn_like(x_bad), t)
-            # x_fix = xbm_noised * good_parts + x_fix * anom_parts
-            out = mydiff_model.unet(x_fix, t).sample
-            x_fix = mydiff_model.scheduler.step(out, t, x_fix).prev_sample
-            x_fix = (1-masked_scales[t]) * xbm_noised * good_parts + x_fix * anom_parts
-            x_fix = (masked_scales[t] * xbm_noised + (1-masked_scales[t]) * x_fix) * good_parts + x_fix * anom_parts
-        # This is where we enforce our property-based loss
+    
+    times = torch.linspace(-1, noise_level - 1, steps=noise_level + 1)
+    times = list(reversed(times.int().tolist()))
+    time_pairs = list(zip(times[:-1], times[1:]))
+    for time, time_next in tqdm(time_pairs): # This is already reversed from 999, 998, ..., 1, 0
+       
+        time_cond = torch.full((config.batch_size,), time, device=config.device, dtype=torch.long)
+        xbm_noised = mydiff_model.add_noise(x_bad, torch.randn_like(x_bad), torch.tensor([time]).to(x_bad.device))
+        x_fix = mydiff_model.get_prev_sample(x_fix, time, time_next, time_cond, x_bad * good_parts, good_parts, model_kwargs=model_kwargs)
+        x_fix = (masked_scales[time] * xbm_noised + (1-masked_scales[time]) * x_fix) * good_parts + x_fix * anom_parts
+        
         with torch.enable_grad():
             x_fix.requires_grad_(True)
             x_fix_ad_out = ad_model(x_fix)
@@ -85,11 +90,9 @@ def vision_repair(
                         + config.prop3_scale * L3 \
                         + config.prop4_scale * L4
             if config.guide_scale_end > 0:
-                prop_loss.backward(retain_graph=True)
-                x_fix.retain_grad()
-                x_fix = x_fix - guide_scales[t] * x_fix.grad.data
+                prop_loss.backward()
+                x_fix = x_fix - guide_scales[time] * x_fix.grad.data
             x_fix.detach()
-
         num_iters += 1
         cum_prop_loss += prop_loss.detach()
         avg_prop_loss = cum_prop_loss / num_iters
@@ -120,13 +123,4 @@ def vision_repair(
             "l3": L3,
             "l4": L4,
             }
-
-
-def L(x_fix, x_fix_ad_out, x, ad_out, good_parts, anom_parts):
-    # prop1_loss = x_fix_ad_out.score.mean()
-    prop1_loss = torch.norm(x_fix_ad_out.score, p=2)
-    prop2_loss = F.mse_loss(good_parts * x_fix, good_parts * x, reduction="sum") / good_parts.sum()
-    prop3_loss = F.relu((x_fix_ad_out.alpha - ad_out.alpha) * anom_parts).sum() / anom_parts.sum()
-    prop4_loss = F.relu((x_fix_ad_out.alpha - ad_out.alpha) * good_parts).sum() / good_parts.sum()
-    return prop1_loss, prop2_loss, prop3_loss, prop4_loss
 

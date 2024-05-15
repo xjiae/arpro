@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
-
-from .common import *
 from diffusers import AutoencoderKL
 from anomalib.models.image.fastflow.torch_model import FastflowModel
 from anomalib.models.image.efficient_ad.torch_model import *
 from anomalib.models.image.fastflow.anomaly_map import AnomalyMapGenerator
 from timm.models.cait import Cait
 from timm.models.vision_transformer import VisionTransformer
+
+from .common import *
 
 
 class VaeADModel(nn.Module):

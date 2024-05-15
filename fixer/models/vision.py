@@ -98,7 +98,7 @@ class MyDiffusionModel(nn.Module):
         return self.scheduler.add_noise(x, noise, t)
 
     def estimate_noise(self, xt, t):
-        return self.unet(xt, t, return_dict=False)[0]
+        return self.unet(xt, t).sample
 
     def forward(
         self,
@@ -139,10 +139,10 @@ class MyDiffusionModel(nn.Module):
         with torch.set_grad_enabled(enable_grad):
             for t in pbar:
                 # 1. predict nosie model_output
-                model_output = self.unet(image, t).sample
+                noise_pred = self.estimate_noise(image, t)
 
                 # 2. compute previous image: x_{t} -> x_{t-1}
-                image = self.scheduler.step(model_output, t, image).prev_sample
+                image = self.scheduler.step(noise_pred, t, image).prev_sample
 
         return image
 

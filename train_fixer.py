@@ -20,9 +20,11 @@ def parse_args():
     # Dataset-specific parameters
     parser.add_argument("--category", type=str, default="transistor")
     parser.add_argument("--image_size", type=int, default=256)
+    parser.add_argument("--feature_dim", type=int, default=51)
+
     # Training-specific details
     parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--num_epochs", type=int, default=300)
+    parser.add_argument("--num_epochs", type=int, default=100)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--device", type=str, default="cuda")
@@ -47,6 +49,9 @@ if __name__ == "__main__":
 
     elif args.model == "textdiffusion":
         init_and_pretrain_text_diffusion(args)
+
+    elif args.model == "ts_diffusion":
+        init_and_pretrain_ts_diffusion(args)
 
     elif args.ad_model == "vae":
         init_and_train_fixer_vae(args)
