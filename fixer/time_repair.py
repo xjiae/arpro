@@ -80,7 +80,8 @@ def time_repair(
         xbm_noised = mydiff_model.add_noise(x_bad, torch.randn_like(x_bad), torch.tensor([time]).to(x_bad.device))
         x_fix = mydiff_model.get_prev_sample(x_fix, time, time_next, time_cond, x_bad * good_parts, good_parts, model_kwargs=model_kwargs)
         x_fix = (masked_scales[time] * xbm_noised + (1-masked_scales[time]) * x_fix) * good_parts + x_fix * anom_parts
-        
+        # x_fix = xbm_noised * good_parts + x_fix * anom_parts
+
         with torch.enable_grad():
             x_fix.requires_grad_(True)
             x_fix_ad_out = ad_model(x_fix)

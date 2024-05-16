@@ -104,7 +104,8 @@ def run_one_epoch(
 
 
 def pretrain_text_diffusion(config: PretrainMyDiffusionConfig):
-    diff_model = MyTextDiffusionModel()
+    
+    diff_model = MyTextDiffusionModel(num_embeddings=50265, embedding_dim=768)
 
     if config.device is not None:
         diff_model.to(config.device)
@@ -115,7 +116,7 @@ def pretrain_text_diffusion(config: PretrainMyDiffusionConfig):
                         category = config.category,
                         split = "train")
     
-
+    
     optimizer = torch.optim.AdamW(
         diff_model.parameters(),
         lr = config.lr

@@ -54,7 +54,7 @@ def vision_repair(
     ad_out = ad_model(x_bad)
     good_parts = (1 - anom_parts).long()
     average_colors = (x_bad * anom_parts).sum(dim=(-1,-2)) / (anom_parts.sum(dim=(-1,-2)))
-    x_bad_masked = (1-anom_parts) * x_bad + anom_parts * (average_colors.view(-1,3,1,1))
+    x_bad_masked = good_parts * x_bad + anom_parts * (average_colors.view(-1,3,1,1))
 
     noise = torch.randn_like(x_bad_masked)
     noise_amt = torch.LongTensor([noise_level]).to(x_bad.device)
@@ -70,11 +70,12 @@ def vision_repair(
     for t in pbar: # This is already reversed from 999, 998, ..., 1, 0
         with torch.no_grad():
             xbm_noised = mydiff_model.add_noise(x_bad_masked, torch.randn_like(x_bad), t)
-            # x_fix = xbm_noised * good_parts + x_fix * anom_parts
+            x_fix = xbm_noised * good_parts + x_fix * anom_parts
+            # x_fix = x_bad_masked * good_parts + x_fix * anom_parts
+            #bx_fix = (1-masked_scales[t]) * xbm_noised * good_parts + x_fix * anom_parts
             out = mydiff_model.unet(x_fix, t).sample
             x_fix = mydiff_model.scheduler.step(out, t, x_fix).prev_sample
-            x_fix = (1-masked_scales[t]) * xbm_noised * good_parts + x_fix * anom_parts
-            x_fix = (masked_scales[t] * xbm_noised + (1-masked_scales[t]) * x_fix) * good_parts + x_fix * anom_parts
+            # x_fix = (masked_scales[t] * xbm_noised + (1-masked_scales[t]) * x_fix) * good_parts + x_fix * anom_parts
         # This is where we enforce our property-based loss
         with torch.enable_grad():
             x_fix.requires_grad_(True)
@@ -123,8 +124,8 @@ def vision_repair(
 
 
 def L(x_fix, x_fix_ad_out, x, ad_out, good_parts, anom_parts):
-    # prop1_loss = x_fix_ad_out.score.mean()
-    prop1_loss = torch.norm(x_fix_ad_out.score, p=2)
+    prop1_loss = x_fix_ad_out.score.mean()
+    # prop1_loss = torch.norm(x_fix_ad_out.score, p=2)
     prop2_loss = F.mse_loss(good_parts * x_fix, good_parts * x, reduction="sum") / good_parts.sum()
     prop3_loss = F.relu((x_fix_ad_out.alpha - ad_out.alpha) * anom_parts).sum() / anom_parts.sum()
     prop4_loss = F.relu((x_fix_ad_out.alpha - ad_out.alpha) * good_parts).sum() / good_parts.sum()
