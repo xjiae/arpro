@@ -128,44 +128,54 @@ class MyTimeDiffusionModel(nn.Module):
         target: torch.FloatTensor = None,
         partial_mask: torch.LongTensor = None,
         noise_level: int = 500,
-        sampling_timesteps: Optional[int] = 500,
+        num_inference_steps: int = 1000,
         clip_denoised: Optional[bool] = True,
         model_kwargs: Optional[dict] = None
     ):
-        """ Adapted from Diffusion_TS.fast_sample_infill """
+        """ Adapted from Diffusion_TS.sample """
         # [-1, 0, 1, 2, ..., T-1] when sampling_timesteps == total_timesteps
-        shape = x.shape
-        batch, device, total_timesteps, eta = shape[0], self.dts_model.betas.device, noise_level, self.dts_model.eta
-        times = torch.linspace(-1, total_timesteps - 1, steps=sampling_timesteps + 1)
-
-        times = list(reversed(times.int().tolist()))
-        time_pairs = list(zip(times[:-1], times[1:]))  # [(T-1, T-2), (T-2, T-3), ..., (1, 0), (0, -1)]
-        signal = torch.randn(shape, device=device)
-        
-        for time, time_next in tqdm(time_pairs, desc='conditional sampling loop time step'):
-            time_cond = torch.full((batch,), time, device=device, dtype=torch.long)
-            pred_noise, x_start, *_ = self.dts_model.model_predictions(signal, time_cond, clip_x_start=clip_denoised)
-
-            if time_next < 0:
-                signal = x_start
-                continue
-
-            alpha = self.dts_model.alphas_cumprod[time]
-            alpha_next = self.dts_model.alphas_cumprod[time_next]
-            sigma = eta * ((1 - alpha / alpha_next) * (1 - alpha_next) / (1 - alpha)).sqrt()
-            c = (1 - alpha_next - sigma ** 2).sqrt()
-            pred_mean = x_start * alpha_next.sqrt() + c * pred_noise
-            noise = torch.randn_like(signal)
-
-            signal = pred_mean + sigma * noise
-            signal = self.dts_model.langevin_fn(sample=signal, mean=pred_mean, sigma=sigma, t=time_cond,
-                                   tgt_embs=target, partial_mask=partial_mask, **model_kwargs)
-            target_t = self.dts_model.q_sample(target, t=time_cond)
-            signal[partial_mask] = target_t[partial_mask]
-
-        signal[partial_mask] = target[partial_mask]
-
+        noise = torch.randn_like(x)
+        signal = self.add_noise(x, noise, torch.tensor([noise_level]).to(x.device))
+        times = reversed(range(0, num_inference_steps))
+        for time in tqdm(times, desc='baseline'):
+            signal = self.dts_model.p_sample_infill(x, target=target, t=time, partial_mask=partial_mask, clip_denoised=clip_denoised, model_kwargs=model_kwargs)
+            # signal, _ = self.dts_model.p_sample(signal, time)
+        # signal[partial_mask] = target[partial_mask]
         return signal
+
+
+    def prev_sample_with_grad_update(
+        self,
+        x,
+        target,
+        t: int,
+        grad_update,
+        partial_mask=None,
+        clip_denoised=True,
+        model_kwargs=None
+    ):
+        batched_times = torch.full((x.shape[0],), t, device=x.device, dtype=torch.long)
+        model_mean, _, model_log_variance, _ = \
+            self.dts_model.p_mean_variance(x=x, t=batched_times, clip_denoised=clip_denoised)
+        noise = torch.randn_like(x) if t > 0 else 0.  # no noise if t == 0
+        sigma = (0.5 * model_log_variance).exp()
+        pred_img = model_mean + sigma * noise
+        # apply the update
+        pred_img = pred_img - grad_update
+        pred_img = self.dts_model.langevin_fn(sample=pred_img, mean=model_mean, sigma=sigma, t=batched_times,
+                                    tgt_embs=target, partial_mask=partial_mask, **model_kwargs)
+        
+        target_t = self.dts_model.q_sample(target, t=batched_times)
+        pred_img[partial_mask] = target_t[partial_mask]
+        # return pred_img
+        # batched_times = torch.full((x.shape[0],), t, device=x.device, dtype=torch.long)
+        # model_mean, _, model_log_variance, x_start = \
+        #     self.dts_model.p_mean_variance(x=x, t=batched_times, clip_denoised=clip_denoised)
+        # noise = torch.randn_like(x) if t > 0 else 0.  # no noise if t == 0
+        # pred_img = model_mean + (0.5 * model_log_variance).exp() * noise
+        # pred_img += grad_update
+        return pred_img
+
     
     
 

@@ -38,10 +38,8 @@ class VisionRepairConfig:
     diffusion_beta_start: float = 0.0001
     diffusion_beta_end: float = 0.02
     num_diffusion_timesteps: int = 1000
-    guide_scale_start: float = 0.0
-    guide_scale_end: float = 1e-3
-    mask_scale_start: float = 1e-4
-    mask_scale_end: float = 5e-3
+    guide_scale: float = 5.0
+
 
 def vision_repair(
     x_bad: torch.FloatTensor,
@@ -64,63 +62,64 @@ def vision_repair(
     cum_prop_loss = 0.0
     cum_L1, cum_L2, cum_L3, cum_L4 = 0.0, 0.0, 0.0, 0.0
     pbar = tqdm(mydiff_model.scheduler.timesteps)
-    guide_scales = torch.linspace(config.guide_scale_end, config.guide_scale_start, 1000) 
-    masked_scales = torch.linspace(config.mask_scale_end, config.mask_scale_start, 1000)
 
     for t in pbar: # This is already reversed from 999, 998, ..., 1, 0
-        with torch.no_grad():
-            xbm_noised = mydiff_model.add_noise(x_bad_masked, torch.randn_like(x_bad), t)
-            x_fix = xbm_noised * good_parts + x_fix * anom_parts
-            # x_fix = x_bad_masked * good_parts + x_fix * anom_parts
-            #bx_fix = (1-masked_scales[t]) * xbm_noised * good_parts + x_fix * anom_parts
-            out = mydiff_model.unet(x_fix, t).sample
-            x_fix = mydiff_model.scheduler.step(out, t, x_fix).prev_sample
-            # x_fix = (masked_scales[t] * xbm_noised + (1-masked_scales[t]) * x_fix) * good_parts + x_fix * anom_parts
-        # This is where we enforce our property-based loss
-        with torch.enable_grad():
-            x_fix.requires_grad_(True)
-            x_fix_ad_out = ad_model(x_fix)
-            L1, L2, L3, L4 = L(x_fix, x_fix_ad_out, x_bad, ad_out, good_parts, anom_parts)
-            prop_loss = config.prop1_scale * L1 \
-                        + config.prop2_scale * L2 \
-                        + config.prop3_scale * L3 \
-                        + config.prop4_scale * L4
-            if config.guide_scale_end > 0:
+        # if guide_scale > 0, then we use our properties
+        guide_vec = torch.zeros_like(x_fix)
+        prop_loss, L1, L2, L3, L4 = 0., 0., 0., 0., 0.
+        if config.guide_scale > 0:
+            with torch.enable_grad():
+                x_fix.requires_grad_(True)
+                x_fix_ad_out = ad_model(x_fix)
+                L1, L2, L3, L4 = L(x_fix, x_fix_ad_out, x_bad, ad_out, good_parts, anom_parts)
+                prop_loss = config.prop1_scale * L1 \
+                            + config.prop2_scale * L2 \
+                            + config.prop3_scale * L3 \
+                            + config.prop4_scale * L4
                 prop_loss.backward(retain_graph=True)
-                x_fix.retain_grad()
-                x_fix = x_fix - guide_scales[t] * x_fix.grad.data
+                prop_loss = prop_loss.detach()
+                L1, L2, L3, L4 = L1.detach(), L2.detach(), L3.detach(), L4.detach()
+                guide_vec = x_fix.grad.data.detach()
+
+        with torch.no_grad():
+            xb_noised = mydiff_model.add_noise(x_bad, torch.randn_like(x_bad), t)
+            noise_pred = mydiff_model.estimate_noise(x_fix, t)
+
+            noise_pred = noise_pred - \
+                (1 - mydiff_model.scheduler.alphas_cumprod[t]).sqrt() * config.guide_scale * guide_vec
+
+            # noise_pred = noise_pred - \
+            #     mydiff_model.scheduler.betas[t] * config.guide_scale * guide_vec
+
+
+            x_fix = mydiff_model.scheduler.step(noise_pred, t, x_fix).prev_sample
+            x_fix = good_parts * xb_noised + anom_parts * x_fix
             x_fix.detach()
 
         num_iters += 1
-        cum_prop_loss += prop_loss.detach()
+        cum_prop_loss += prop_loss
         avg_prop_loss = cum_prop_loss / num_iters
 
-        cum_L1 += L1.detach()
-        cum_L2 += L2.detach()
-        cum_L3 += L3.detach()
-        cum_L4 += L4.detach()
+        cum_L1 += L1
+        cum_L2 += L2
+        cum_L3 += L3
+        cum_L4 += L4
 
-        avg_L1 = L1 / num_iters
-        avg_L2 = L2 / num_iters
-        avg_L3 = L3 / num_iters
-        avg_L4 = L4 / num_iters
+        avg_L1 = cum_L1 / num_iters
+        avg_L2 = cum_L2 / num_iters
+        avg_L3 = cum_L3 / num_iters
+        avg_L4 = cum_L4 / num_iters
 
-        end_num = math.log10(config.guide_scale_end) if config.guide_scale_end > 0 else 0
+        end_num = math.log10(config.guide_scale) if config.guide_scale > 0 else 0
         desc_str = f"gs {end_num:.2f}, "
         desc_str += f"avg_L {avg_prop_loss:.2f}, "
         desc_str += f"curr_L {prop_loss:.2f}, "
-        desc_str += f"L1 {(config.prop1_scale * L1):.2f} {L1:.2f}, "
-        desc_str += f"L2 {(config.prop2_scale * L2):.2f} {L2:.2f}, "
-        desc_str += f"L3 {(config.prop3_scale * L3):.2f} {L3:.2f}, "
-        desc_str += f"L4 {(config.prop4_scale * L4):.2f} {L4:.2f}, "
+        desc_str += f"L1 {(config.prop1_scale * avg_L1):.2f} {avg_L1:.2f}, "
+        desc_str += f"L2 {(config.prop2_scale * avg_L2):.2f} {avg_L2:.2f}, "
+        desc_str += f"L3 {(config.prop3_scale * avg_L3):.2f} {avg_L3:.2f}, "
+        desc_str += f"L4 {(config.prop4_scale * avg_L4):.2f} {avg_L4:.2f}, "
         pbar.set_description(desc_str)
-    return {"x_fix": x_fix, 
-            "prop_loss": prop_loss, 
-            "l1": L1,
-            "l2": L2,
-            "l3": L3,
-            "l4": L4,
-            }
+    return {"x_fix": x_fix}
 
 
 def L(x_fix, x_fix_ad_out, x, ad_out, good_parts, anom_parts):

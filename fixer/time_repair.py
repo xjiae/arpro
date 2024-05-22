@@ -32,10 +32,7 @@ class TimeRepairConfig:
     diffusion_beta_start: float = 0.0001
     diffusion_beta_end: float = 0.02
     num_diffusion_timesteps: int = 1000
-    guide_scale_start: float = 0.0
-    guide_scale_end: float = 1e-3
-    mask_scale_start: float = 1e-4
-    mask_scale_end: float = 5e-3
+    guide_scale: float = 10.0
 
 def L(x_fix, x_fix_ad_out, x, ad_out, good_parts, anom_parts):
     prop1_loss = x_fix_ad_out.score.mean()
@@ -52,6 +49,7 @@ def time_repair(
     mydiff_model: MyTimeDiffusionModel,
     config: TimeRepairConfig,
     noise_level: int,
+    num_inference_steps: int=1000
 ):
     
     ad_out = ad_model(x_bad)
@@ -68,47 +66,58 @@ def time_repair(
     cum_prop_loss = 0.0
     cum_L1, cum_L2, cum_L3, cum_L4 = 0.0, 0.0, 0.0, 0.0
     pbar = tqdm(mydiff_model.num_timesteps)
-    guide_scales = torch.linspace(config.guide_scale_end, config.guide_scale_start, 1000) 
-    masked_scales = torch.linspace(config.mask_scale_end, config.mask_scale_start, 1000)
     
-    times = torch.linspace(-1, noise_level - 1, steps=noise_level + 1)
-    times = list(reversed(times.int().tolist()))
-    time_pairs = list(zip(times[:-1], times[1:]))
-    for time, time_next in tqdm(time_pairs): # This is already reversed from 999, 998, ..., 1, 0
-       
-        time_cond = torch.full((config.batch_size,), time, device=config.device, dtype=torch.long)
-        xbm_noised = mydiff_model.add_noise(x_bad, torch.randn_like(x_bad), torch.tensor([time]).to(x_bad.device))
-        x_fix = mydiff_model.get_prev_sample(x_fix, time, time_next, time_cond, x_bad * good_parts, good_parts, model_kwargs=model_kwargs)
-        x_fix = (masked_scales[time] * xbm_noised + (1-masked_scales[time]) * x_fix) * good_parts + x_fix * anom_parts
-        # x_fix = xbm_noised * good_parts + x_fix * anom_parts
-
-        with torch.enable_grad():
-            x_fix.requires_grad_(True)
-            x_fix_ad_out = ad_model(x_fix)
-            L1, L2, L3, L4 = L(x_fix, x_fix_ad_out, x_bad, ad_out, good_parts, anom_parts)
-            prop_loss = config.prop1_scale * L1 \
-                        + config.prop2_scale * L2 \
-                        + config.prop3_scale * L3 \
-                        + config.prop4_scale * L4
-            if config.guide_scale_end > 0:
+    times = list(reversed(range(0, num_inference_steps)))
+    for time in tqdm(times): # This is already reversed from 999, 998, ..., 1, 0
+        guide_vec = torch.zeros_like(x_fix)
+        prop_loss, L1, L2, L3, L4 = 0., 0., 0., 0., 0.
+        if config.guide_scale > 0:
+            with torch.enable_grad():
+                x_fix.requires_grad_(True)
+                x_fix_ad_out = ad_model(x_fix)
+                L1, L2, L3, L4 = L(x_fix, x_fix_ad_out, x_bad, ad_out, good_parts, anom_parts)
+                prop_loss = config.prop1_scale * L1 \
+                            + config.prop2_scale * L2 \
+                            + config.prop3_scale * L3 \
+                            + config.prop4_scale * L4
                 prop_loss.backward()
-                x_fix = x_fix - guide_scales[time] * x_fix.grad.data
-            x_fix.detach()
+                guide_vec = x_fix.grad.data.detach()
+                prop_loss = prop_loss.detach()
+                L1, L2, L3, L4 = L1.detach(), L2.detach(), L3.detach(), L4.detach()
+                x_fix.detach()
+                
+
+        with torch.no_grad():
+            # xb_noised = mydiff_model.add_noise(x_bad, 
+            #                                    torch.randn_like(x_bad), 
+            #                                    torch.tensor([time]).to(x_bad.device))
+
+            # apply the update here
+            grad_update = (1 - mydiff_model.dts_model.alphas_cumprod[time]).sqrt() * guide_vec * config.guide_scale
+            
+            x_fix = mydiff_model.prev_sample_with_grad_update(x_fix, 
+                                                              target=x_bad * good_parts, 
+                                                              t=time, 
+                                                              grad_update=grad_update, 
+                                                              partial_mask=good_parts, 
+                                                              model_kwargs=model_kwargs)
+            # x_fix = anom_parts * x_fix + good_parts * xb_noised
+            
         num_iters += 1
-        cum_prop_loss += prop_loss.detach()
+        cum_prop_loss += prop_loss
         avg_prop_loss = cum_prop_loss / num_iters
 
-        cum_L1 += L1.detach()
-        cum_L2 += L2.detach()
-        cum_L3 += L3.detach()
-        cum_L4 += L4.detach()
+        cum_L1 += L1
+        cum_L2 += L2
+        cum_L3 += L3
+        cum_L4 += L4
 
         avg_L1 = L1 / num_iters
         avg_L2 = L2 / num_iters
         avg_L3 = L3 / num_iters
         avg_L4 = L4 / num_iters
 
-        end_num = math.log10(config.guide_scale_end) if config.guide_scale_end > 0 else 0
+        end_num = math.log10(config.guide_scale) if config.guide_scale > 0 else 0
         desc_str = f"gs {end_num:.2f}, "
         desc_str += f"avg_L {avg_prop_loss:.2f}, "
         desc_str += f"curr_L {prop_loss:.2f}, "
@@ -117,6 +126,7 @@ def time_repair(
         desc_str += f"L3 {(config.prop3_scale * L3):.2f} {L3:.2f}, "
         desc_str += f"L4 {(config.prop4_scale * L4):.2f} {L4:.2f}, "
         pbar.set_description(desc_str)
+    x_fix[good_parts] = x_bad[good_parts]
     return {"x_fix": x_fix, 
             "prop_loss": prop_loss, 
             "l1": L1,
