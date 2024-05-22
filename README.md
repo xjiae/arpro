@@ -2,7 +2,7 @@
 
 `pip install -r requirements.txt `
 
-## Download dataset
+## Download datasets
 SWaT: https://itrust.sutd.edu.sg/itrust-labs_datasets/dataset_info/
 
 VisA: https://github.com/HuiZhang0812/DiffusionAD?tab=readme-ov-file
