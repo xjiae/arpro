@@ -10,16 +10,9 @@ from torch.utils.data import Dataset, DataLoader, Subset, ConcatDataset, \
 
 username = pwd.getpwuid(os.getuid()).pw_name
 
-if username == "xjiae":
-    EXLIB_PATH = "/home/xjiae/bussie/exlib/src/"
-    VISA_DIR = "/home/xjiae/bussie/data/visa/1cls/"
-elif username == "antonxue":
-    EXLIB_PATH = "/home/antonxue/foo/exlib/src/"
-    VISA_DIR = "/home/antonxue/foo/data/visa/1cls/"
-else:
-    print(f"datasets/mvtec.py: unexpected username {username}, may not set paths correctly")
-    EXLIB_PATH = "../exlib/src/"
-    VISA_DIR = "../data/visa/1cls"
+### replace the paths with the directory to the dataset folder
+EXLIB_PATH = "../exlib/src/"
+VISA_DIR = "../data/visa/1cls"
 
 sys.path.append(EXLIB_PATH)
 from exlib.datasets.visa import VisA
