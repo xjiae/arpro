@@ -11,7 +11,7 @@ from .utils import *
 class TimeSeriesDataset(Dataset):
     def __init__(self, ds_name, window_size,
                  stride = 1,
-                 root = "/home/antonxue/foo/data",
+                 root = None,
                  contents = "all",
                  label_choice = "last",
                  overwrite_cache = False):
