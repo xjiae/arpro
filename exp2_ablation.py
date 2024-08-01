@@ -383,23 +383,7 @@ def vision_ablation(
             
             save_csv(i, metric_ours.tolist(), f"_dump/results/ablation/{dataset}_{category}"
                                                             f"_p4_{prop4_scale}.csv")
-        for end in END_SCALE_RANGE:
-            # repair config
-            repair_config = VisionRepairConfig(category=category, 
-                                                lr=1e-5, 
-                                                batch_size=batch_size, 
-                                                guide_scale_end=end) 
-            out = vision_repair(x_bad, anom_parts, ad, mydiff, repair_config, noise_level)
-            x_fix = out['x_fix']
-            x_fix_ad_out = ad(2 * x_fix - 1)
-            x_fix = x_fix.clamp(0,1)
-            metric_ours = property_metrics(x_fix, x_fix_ad_out, x_bad, x_bad_ad_out, good_parts, anom_parts)
-
-            x_fix = x_fix.detach().cpu()
-            x_fix_ad_out = detach(x_fix_ad_out)
-            
-            save_csv(i, metric_ours.tolist(), f"_dump/results/ablation/{dataset}_{category}"
-                                                            f"_end_{end}.csv")
+       
         for prop1_scale in PROP_SCALE_RANGE:
             # repair config
             repair_config = VisionRepairConfig(category=category, 
@@ -452,16 +436,34 @@ def vision_ablation(
             
             save_csv(i, metric_ours.tolist(), f"_dump/results/ablation/{dataset}_{category}"
                                                             f"_p3_{prop3_scale}.csv")
+        for end in END_SCALE_RANGE:
+            # repair config
+            repair_config = VisionRepairConfig(category=category, 
+                                                lr=1e-5, 
+                                                batch_size=batch_size, 
+                                                guide_scale=end) 
+            out = vision_repair(x_bad, anom_parts, ad, mydiff, repair_config, noise_level)
+            x_fix = out['x_fix']
+            x_fix_ad_out = ad(2 * x_fix - 1)
+            x_fix = x_fix.clamp(0,1)
+            metric_ours = property_metrics(x_fix, x_fix_ad_out, x_bad, x_bad_ad_out, good_parts, anom_parts)
+
+            x_fix = x_fix.detach().cpu()
+            x_fix_ad_out = detach(x_fix_ad_out)
+            
+            save_csv(i, metric_ours.tolist(), f"_dump/results/ablation/{dataset}_{category}"
+                                                            f"_end_{end}.csv")
         
 
-def plot_vision_ablation(dataset, category):
+def plot_vision_ablation(category):
+    dataset = "visa"
     columns = ['m1', 'm2', 'm3', 'm4']
     labels = [r'$\lambda_1$', r'$\lambda_2$', r'$\lambda_3$', r'$\lambda_4$', r'$\lambda_\phi$']
     metrics = ['m1', 'm2', 'm3', 'm4']
 
     def load_data(prop, phase):
         if phase == -1:
-            df = pd.read_csv(f"_dump/results/ablation/{dataset}_end_{prop}.csv", index_col=0, names=columns)
+            df = pd.read_csv(f"_dump/results/ablation/{dataset}_{category}_end_{prop}.csv", index_col=0, names=columns)
         else:
             if prop == 1.0:
                 # add others to here as well and take the median
@@ -483,6 +485,8 @@ def plot_vision_ablation(dataset, category):
             p2[prop] = load_data(prop, 2)
             p3[prop] = load_data(prop, 3)
             p4[prop] = load_data(prop, 4)
+        for prop in END_SCALE_RANGE:    
+            end[prop] = load_data(prop, -1)
         return p1, p2, p3, p4, end
 
     p1, p2, p3, p4, end = collect_data()
@@ -493,18 +497,24 @@ def plot_vision_ablation(dataset, category):
         props = list(data_dicts[0].keys())
         for idx, data in enumerate(data_dicts):
             medians = [data[prop][metric_idx] for prop in props]
-            plt.plot(props, medians, label=labels[idx], marker='o')
+            if 'phi' in metric_name:
+                plt.plot(props, medians, label=labels[-1], marker='o')
+            else:
+                plt.plot(props, medians, label=labels[idx], marker='o')
         # Define custom y-ticks
         y_min, y_max = plt.ylim()
+        # x_min, x_max = plt.xlim()
         y_ticks = np.linspace(y_min, y_max, num=3)
+        if 'phi' in metric_name:
+            x_ticks = END_SCALE_RANGE
+        else:
+            x_ticks = PROP_SCALE_RANGE
+        # x_ticks = np.linspace(x_min, x_max, num=5)
         # plt.xlabel('Property Scale', fontsize=20)
         # plt.ylabel('Value', fontsize=20)
-        plt.xticks(fontsize=30)
+        plt.xticks(ticks=x_ticks, fontsize=30)
         plt.yticks(ticks=y_ticks, fontsize=30)
-        if metric_idx == 0:
-            ax.yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
-        else:
-            ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.3f'))
         plt.legend(loc='center left', bbox_to_anchor=(0.95, 0.5), fontsize=25)
         plt.tight_layout()
         plt.savefig(f'_dump/results/ablation/{dataset}_{category}_{metric_name}.png')
@@ -513,64 +523,10 @@ def plot_vision_ablation(dataset, category):
     data_dicts = [p1, p2, p3, p4]
     for idx, metric in enumerate(metrics):
         plot_and_save(data_dicts, idx, metric)
-
-# def plot_time_ablation(dataset):
-#     columns = ['m1', 'm2', 'm3', 'm4']
-#     labels = [r'$M_s$', r'$M_d$', r'$M_\omega$', r'$M_{1-\omega}$']
-#     p1, p2, p3, p4, end = {}, {}, {}, {}, {}
-#     for prop in PROP_SCALE_RANGE:
-#         df1 = pd.read_csv(f"_dump/results/ablation/{dataset}_p1_{prop}.csv", index_col=0, names=columns)
-#         p1[prop] = df1.median().values
-#         df2 = pd.read_csv(f"_dump/results/ablation/{dataset}_p2_{prop}.csv", index_col=0, names=columns)
-#         p2[prop] = df2.median().values
-#         df3 = pd.read_csv(f"_dump/results/ablation/{dataset}_p3_{prop}.csv", index_col=0, names=columns)
-#         p3[prop] = df3.median().values
-#         df4 = pd.read_csv(f"_dump/results/ablation/{dataset}_p4_{prop}.csv", index_col=0, names=columns)
-#         p4[prop] = df4.median().values
-#         dfe = pd.read_csv(f"_dump/results/ablation/{dataset}_p2_{prop}.csv", index_col=0, names=columns)
-#         end[prop] = dfe.median().values
+    for idx, metric in enumerate(metrics):
+        metric += "_phi"
+        plot_and_save([end], idx, metric)
     
-#     def load_data(prop, phase):
-#         df = pd.read_csv(f"_dump/results/ablation/{dataset}_p{phase}_{prop}.csv", index_col=0, names=columns)
-#         median = df.mean().values
-#         std = df.std().values
-#         return median, std
-    
-#     for prop in PROP_SCALE_RANGE:
-#         p1[prop] = load_data(prop, 1)
-#         p2[prop] = load_data(prop, 2)
-#         p3[prop] = load_data(prop, 3)
-#         p4[prop] = load_data(prop, 4)
-#         end[prop] = load_data(prop, 2)
-    
-#     def plot_and_save(data, prop_name):
-#         props = list(data.keys())
-#         medians = [data[p][0] for p in props]
-#         stds = [data[p][1] for p in props]
-        
-#         plt.figure()
-#         for idx, label in zip(range(len(columns)), labels):
-#             median_values = [m[idx] for m in medians]
-#             std_values = [s[idx] for s in stds]
-#             plt.plot(props, median_values, label=label)
-#             plt.fill_between(props, 
-#                              np.array(median_values) - np.array(std_values), 
-#                              np.array(median_values) + np.array(std_values), 
-#                              alpha=0.2)
-        
-#         plt.xticks(fontsize=30)
-#         plt.yticks(fontsize=30)
-#         plt.legend(loc='center left', bbox_to_anchor=(0.95, 0.5), fontsize=12)
-#         plt.tight_layout()
-#         plt.savefig(f'_dump/results/ablation/{dataset}_{prop_name}.png')
-#         plt.close()
-
-#     # Plot and save for each dictionary
-#     plot_and_save(p1, 'p1')
-#     plot_and_save(p2, 'p2')
-#     plot_and_save(p3, 'p3')
-#     plot_and_save(p4, 'p4')
-#     plot_and_save(end, 'end')
 
 def plot_time_ablation():
     dataset = "swat"
