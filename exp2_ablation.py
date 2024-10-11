@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, SubsetRandomSampler
 
 from ad.models import *
 from fixer import *
-from datasets import *
+from mydatasets import *
 
 plt.style.use("seaborn-v0_8")
 PROP_SCALE_RANGE = [0.0, 0.25, 0.5, 0.75, 1.0]

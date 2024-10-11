@@ -19,7 +19,8 @@ class TimeSeriesDataset(Dataset):
         assert ds_name in ["hai", "swat", "wadi"]
         assert contents in ["all", "train", "test", "raw"]
         assert label_choice in ["all", "last", "exist"]
-
+        print(f"root: {root}")
+        print(f"ds_name: {ds_name}")
         self.data_dir = os.path.join(root, ds_name)
         self.train_file = os.path.join(self.data_dir, "train_processed.csv")
         self.test_file = os.path.join(self.data_dir, "test_processed.csv")
@@ -134,27 +135,35 @@ class TimeSeriesDataset(Dataset):
         return self.ts
 
 
-def get_timeseries_bundle(ds_name,
-                          window_size = 100,
-                          label_choice = "last",
-                          stride = 1,
-                          train_batch_size = 32,
-                          test_batch_size = 32,
-                          train_has_only_goods = False,
-                          train_frac = 0.7,
-                          shuffle = True,
-                          seed = 1234):
+def get_timeseries_bundle(
+    ds_name,
+    window_size = 100,
+    label_choice = "last",
+    stride = 1,
+    train_batch_size = 32,
+    test_batch_size = 32,
+    train_has_only_goods = False,
+    train_frac = 0.7,
+    shuffle = True,
+    root = "mydatasets/data",
+    seed = 1234
+):
 
-    good_dataset = TimeSeriesDataset(ds_name,
-                                     window_size,
-                                     stride = stride,
-                                     contents = "train",
-                                     label_choice = label_choice)
+    good_dataset = TimeSeriesDataset(
+        ds_name,
+        window_size,
+        stride = stride,
+        contents = "train",
+        label_choice = label_choice,
+        root = root
+    )
     anom_dataset = TimeSeriesDataset(ds_name,
-                                     window_size,
-                                     stride = stride,
-                                     contents = "test",
-                                     label_choice = label_choice)
+        window_size,
+        stride = stride,
+        contents = "test",
+        label_choice = label_choice,                                
+        root = root
+    )
 
     torch.manual_seed(seed)
     if train_has_only_goods:

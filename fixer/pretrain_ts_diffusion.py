@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from torch.optim.lr_scheduler import LinearLR, SequentialLR
 
 from .models import MyTimeDiffusionModel
-from datasets import get_timeseries_bundle
+from mydatasets import get_timeseries_bundle
 
 @dataclass
 class PretrainMyTSDiffusionConfig:
@@ -75,6 +75,8 @@ def run_one_epoch(
         desc += f"N {num_dones}, loss {avg_loss:.4f}, "
         desc += f"lr {lr_scheduler.get_last_lr()[0]:.6f} " if train_or_eval == "train" else ""
         pbar.set_description(desc)
+        if num_dones > 100000:
+            break
         wandb.log({
             "train_loss": avg_loss,
         })
@@ -85,15 +87,21 @@ def run_one_epoch(
     }
 
 def pretrain_ts_diffusion(config: PretrainMyTSDiffusionConfig):
-    
+    if config.dataset == "wadi":
+        num_features = 127
+    elif config.dataset == "swat":
+        num_features = 51
+    else:
+        num_features = 86
     # diff_model = MyTSDiffusionModel(input_dim=config.feature_dim)
-    diff_model = MyTimeDiffusionModel(window_size=config.window_size, feature_dim=config.feature_dim)
+    diff_model = MyTimeDiffusionModel(window_size=config.window_size, 
+                                      feature_dim=num_features)
 
     if config.device is not None:
         diff_model.to(config.device)
 
     train_dataloader = get_timeseries_bundle(
-        ds_name = "swat",
+        ds_name = config.dataset,
         stride = 1,
         window_size = config.window_size,
         train_batch_size = config.batch_size, 
@@ -177,6 +185,7 @@ def pretrain_ts_diffusion(config: PretrainMyTSDiffusionConfig):
 
 def init_and_pretrain_ts_diffusion(args):
     assert args.model == "ts_diffusion"
+    
     config = PretrainMyTSDiffusionConfig(
         dataset = args.dataset,
         num_epochs = args.num_epochs,

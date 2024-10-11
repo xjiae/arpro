@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from datasets import *
+from mydatasets import *
 from ad import *
 
 
@@ -49,12 +49,13 @@ if __name__ == "__main__":
 
     if args.model == "vae" and args.dataset == "mvtec":
         init_and_train_ad_vae(args)
-    if args.model == "efficientad" and args.dataset == "mvtec":
+    if args.model == "efficientad":
         init_and_train_ad_efficient_ad(args)
     if args.model == "fastflow":
         init_and_train_ad_fastflow(args)
     if args.model == "gpt2":
         init_and_train_ad_gpt2(args)
-
+    if args.model == "llama2":
+        init_and_train_ad_llama2(args)
 
 

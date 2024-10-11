@@ -6,7 +6,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--task", type=str, default="median")
-
+    parser.add_argument("--ad", type=str, default="gpt2")
     # Dataset-specific parameters
     parser.add_argument("--dataset", type=str, default="visa")
     parser.add_argument("--category", type=str, default="pcb4")
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     
 
-    if args.dataset == "visa":
+    if args.dataset == "visa" or args.dataset == "mvtec":
         if args.task == "median":
             compute_stats(
                         dataset=args.dataset, 
@@ -46,17 +46,30 @@ if __name__ == "__main__":
                         guide_scale=args.end
                         )
         elif args.task == "exp1":
-            eval_image_property_improvement(dataset=args.dataset, 
-                                    category=args.category, 
-                                    image_size=args.image_size, 
-                                    noise_level=args.noise,
-                                    batch_size=args.batch_size, 
-                                    prop1_scale=args.p1,
-                                    prop2_scale=args.p2,
-                                    prop3_scale=args.p3,
-                                    prop4_scale=args.p4,
-                                    guide_scale=args.end
-                                    )
+            if args.ad == "fastflow":
+                eval_image_property_improvement(dataset=args.dataset, 
+                                        category=args.category, 
+                                        image_size=args.image_size, 
+                                        noise_level=args.noise,
+                                        batch_size=args.batch_size, 
+                                        prop1_scale=args.p1,
+                                        prop2_scale=args.p2,
+                                        prop3_scale=args.p3,
+                                        prop4_scale=args.p4,
+                                        guide_scale=args.end
+                                        )
+            elif args.ad == "efficientad":
+                eval_image_property_improvement_eff(dataset=args.dataset, 
+                                        category=args.category, 
+                                        image_size=args.image_size, 
+                                        noise_level=args.noise,
+                                        batch_size=args.batch_size, 
+                                        prop1_scale=args.p1,
+                                        prop2_scale=args.p2,
+                                        prop3_scale=args.p3,
+                                        prop4_scale=args.p4,
+                                        guide_scale=args.end
+                                        )
         elif args.task == 'exp2':
             vision_ablation(
                             dataset=args.dataset, 
@@ -66,7 +79,7 @@ if __name__ == "__main__":
                             batch_size=args.batch_size, 
                             )
 
-    elif args.dataset == "swat":
+    elif args.dataset == "swat" or args.dataset == "wadi" or args.dataset == "hai":
         if args.task == "median":
             compute_stats(
                         dataset=args.dataset, 
@@ -77,15 +90,26 @@ if __name__ == "__main__":
                         guide_scale=args.end
                         )
         elif args.task == "exp1":
-            eval_time_property_improvement(dataset=args.dataset, 
-                                        noise_level=args.noise,
-                                        batch_size=args.batch_size, 
-                                        prop1_scale=args.p1,
-                                        prop2_scale=args.p2,
-                                        prop3_scale=args.p3,
-                                        prop4_scale=args.p4,
-                                        guide_scale=args.end,
-                                        num_inference_steps=args.steps)
+            if args.ad == "gpt2":
+                eval_time_property_improvement(dataset=args.dataset, 
+                                            noise_level=args.noise,
+                                            batch_size=args.batch_size, 
+                                            prop1_scale=args.p1,
+                                            prop2_scale=args.p2,
+                                            prop3_scale=args.p3,
+                                            prop4_scale=args.p4,
+                                            guide_scale=args.end,
+                                            num_inference_steps=args.steps)
+            elif args.ad == "llama2":
+                eval_time_property_improvement_llama(dataset=args.dataset, 
+                                            noise_level=args.noise,
+                                            batch_size=args.batch_size, 
+                                            prop1_scale=args.p1,
+                                            prop2_scale=args.p2,
+                                            prop3_scale=args.p3,
+                                            prop4_scale=args.p4,
+                                            guide_scale=args.end,
+                                            num_inference_steps=args.steps)
         elif args.task == 'exp2':
             time_ablation(dataset=args.dataset, 
                           noise_level=args.noise,

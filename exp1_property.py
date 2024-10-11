@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, SubsetRandomSampler
 plt.style.use("seaborn-v0_8")
 from ad.models import *
 from fixer import *
-from datasets import *
+from mydatasets import *
 
 def sample(dataloader, num_samples=50):
     dataset = dataloader.dataset
@@ -23,14 +23,16 @@ def sample(dataloader, num_samples=50):
 def detach(ad_out):
     ad_out.score = ad_out.score.detach().cpu()
     ad_out.alpha = ad_out.alpha.detach().cpu()
-    ad_out.others = detach_and_move(ad_out.others)
+    ad_out.others = {}
+    # ad_out.others = detach_and_move(ad_out.others)
     return ad_out
 
 def detach_and_move(dict_tensors):
     
     for key, value in dict_tensors.items():
-        
-        dict_tensors[key] = [tensor.detach().cpu() for tensor in value if tensor.requires_grad]
+        if value is not None and isinstance(value, torch.Tensor):
+            dict_tensors[key] = value.detach().cpu()
+            # dict_tensors[key] = [tensor.detach().cpu() for tensor in value if tensor.requires_grad]
         
     return dict_tensors
 
@@ -69,7 +71,8 @@ def save_plot(x, fp):
         plt.savefig(new_fp, transparent=True, bbox_inches='tight', pad_inches=0)
         plt.close(fig) 
         
-def plot_timeseries(batch, ys, x_bad, x_fix, x_fix_baseline, index=2):
+def plot_timeseries(batch, ys, x_bad, x_fix, x_fix_baseline, index=2, model_name="gpt2"):
+    os.makedirs(f"_dump/{model_name}/swat/", exist_ok=True)
     rows_with_ones = torch.any(ys == 1, dim=1)
     row = torch.nonzero(rows_with_ones, as_tuple=True)[0][-1]
     list1 = x_bad.detach().cpu()[row, :,index]
@@ -98,7 +101,7 @@ def plot_timeseries(batch, ys, x_bad, x_fix, x_fix_baseline, index=2):
     plt.tick_params(axis='both', labelsize=20)
     plt.legend(fontsize=16)
     plt.show()
-    plt.savefig(f"_dump/swat/batch_{batch}_row_{row}_index_{index}.png")
+    plt.savefig(f"_dump/{model_name}/swat/batch_{batch}_row_{row}_index_{index}.png")
     plt.close()
 
 def save_csv(i, metrics, fp):
@@ -159,9 +162,9 @@ def eval_image_property_improvement(
     # dataloader = sample(dataloader, 50)
     metrics_base = []
     metrics_ours = []
-    for i, batch in tqdm(enumerate(dataloader)):
+    for i, batch in enumerate(tqdm(dataloader)):
         bad_idxs = (batch['label'] != 0)
-        if bad_idxs.sum() < 1 or i <50:
+        if bad_idxs.sum() < 1:
             continue
         x_bad, y, m = batch['image'][bad_idxs], batch['label'][bad_idxs], batch['mask'][bad_idxs]
         x_bad = (2*x_bad-1).cuda()
@@ -234,13 +237,147 @@ def eval_image_property_improvement(
         metrics_ours.append(metric_ours)
        
         torch.cuda.empty_cache()
+
+def eval_image_property_improvement_eff(
+        dataset, 
+        category, 
+        image_size=256, 
+        batch_size=1, 
+        quantile=0.9, 
+        noise_level=1000,
+        prop1_scale=0.1,
+        prop2_scale=0.1,
+        prop3_scale=1.0,
+        prop4_scale=1.0,
+        guide_scale=0.1):
+    # load ad model
+    ad = EfficientAdADModel(model_size="medium")
+    state_dict = torch.load(f"_dump/ad_eff_{dataset}_{category}_best.pt")["model_state_dict"]
+    ad.load_state_dict(state_dict)
+    ad.eval().cuda();
+    # load dataloader
+    dataloader = get_fixer_dataloader(dataset, batch_size=batch_size, category=category, split="test", image_size=image_size)
+
+    # load fixer model
+    model_path = f"_dump/fixer_diffusion_{dataset}_{category}_best.pt"
+    model_dict = torch.load(model_path)['model_state_dict']
+    mydiff = MyDiffusionModel(image_size=image_size)
+    mydiff.load_state_dict(model_dict)
+    mydiff.eval().cuda();
+
+    # repair config
+    repair_config = VisionRepairConfig(category=category, 
+                                       lr=1e-5, 
+                                        batch_size=batch_size, 
+                                        prop1_scale=prop1_scale, 
+                                        prop2_scale=prop2_scale,
+                                        prop3_scale=prop3_scale,
+                                        prop4_scale=prop4_scale,
+                                        guide_scale=guide_scale)
+    # repair config
+    baseline_infill_config = VisionRepairConfig(category=category, 
+                                        lr=1e-5, 
+                                        batch_size=batch_size, 
+                                        prop1_scale=prop1_scale, 
+                                        prop2_scale=prop2_scale,
+                                        prop3_scale=prop3_scale,
+                                        prop4_scale=prop4_scale,
+                                        guide_scale=0.0)
+    os.makedirs(f"_dump/eff/{dataset}/{category}/", exist_ok=True)
+
+    # dataloader = sample(dataloader, 50)
+    metrics_base = []
+    metrics_ours = []
+    cnt = 0
+    for i, batch in enumerate(tqdm(dataloader)):
+        bad_idxs = (batch['label'] != 0)
+        
+        if bad_idxs.sum() < 1:
+            continue
+        x_bad, y, m = batch['image'][bad_idxs], batch['label'][bad_idxs], batch['mask'][bad_idxs]
+        x_bad = (2*x_bad-1).cuda()
+
+        x_bad_ad_out = ad(x_bad)
+        anom_parts = (x_bad_ad_out.alpha > x_bad_ad_out.alpha.view(x_bad.size(0),-1).quantile(quantile,dim=1).view(-1,1,1,1)).long()
+        good_parts = 1 - anom_parts
+
+        average_colors = (x_bad * anom_parts).sum(dim=(-1,-2)) / (anom_parts.sum(dim=(-1,-2)))
+        x_bad_masked = (1-anom_parts) * x_bad + anom_parts * (average_colors.view(-1,3,1,1))
+        save_plot(0.5*x_bad+0.5, f"_dump/eff/{dataset}/{category}/{i}_x_bad.png")
+        save_plot(m, f"_dump/eff/{dataset}/{category}/{i}_x_bad_gt.png")
+        save_plot(0.5*x_bad_masked+0.5, f"_dump/eff/{dataset}/{category}/{i}_x_bad_masked.png")
+
         
 
-def get_ts_threshold(model, train_dataloader, test_dataloader):
+        ## baseline infill
+        infill_out = vision_repair(x_bad, anom_parts, ad, mydiff, baseline_infill_config, noise_level)
+        x_fix_baseline_infill = infill_out['x_fix'].clamp(-1,1)
+        save_plot(0.5*x_fix_baseline_infill+0.5, f"_dump/eff/{dataset}/{category}/{i}_x_fix_baseline_infill.png")
+        x_fix_baseline_infill_ad_out = ad(x_fix_baseline_infill)
+       
+        ## our method
+        out = vision_repair(x_bad, anom_parts, ad, mydiff, repair_config, noise_level)
+        x_fix = out['x_fix'].clamp(-1,1)
+        x_fix_ad_out = ad(x_fix)
+        save_plot(0.5*x_fix+0.5, f"_dump/eff/{dataset}/{category}/{i}_x_fix.png")
+
+        ## baseline SDEdit
+        x_fix_baseline = mydiff(x_bad_masked.cuda(), noise_level, num_inference_steps=1000, progress_bar=True)
+        x_fix_baseline = x_fix_baseline.clamp(-1,1)
+        save_plot(0.5*x_fix_baseline+0.5, f"_dump/eff/{dataset}/{category}/{i}_x_fix_baseline.png")
+        x_fix_baseline_ad_out = ad(x_fix_baseline)
+
+        x_fix_baseline = x_fix_baseline.detach().cpu()
+        x_fix_baseline_infill = x_fix_baseline_infill.detach().cpu()
+        x_fix_baseline_infill_ad_out = detach(x_fix_baseline_infill_ad_out)
+        x_fix_baseline_ad_out = detach(x_fix_baseline_ad_out)
+        x_bad = x_bad.detach().cpu()
+        x_bad_ad_out = detach(x_bad_ad_out)
+        x_fix = x_fix.detach().cpu()
+        x_fix_ad_out = detach(x_fix_ad_out)
+        anom_parts = anom_parts.detach().cpu()
+        good_parts = good_parts.detach().cpu()
+        metric_base = property_metrics(x_fix_baseline, x_fix_baseline_ad_out, x_bad, x_bad_ad_out, good_parts, anom_parts)
+        metric_base_infill = property_metrics(x_fix_baseline_infill, x_fix_baseline_infill_ad_out, x_bad, x_bad_ad_out, good_parts, anom_parts)
+        metric_ours = property_metrics(x_fix, x_fix_ad_out, x_bad, x_bad_ad_out, good_parts, anom_parts)
+        save_csv(i, metric_base, f"_dump/results/eff_{dataset}_{category}"
+                                                          f"_p1_{prop1_scale}"
+                                                          f"_p2_{prop2_scale}"
+                                                          f"_p3_{prop3_scale}"
+                                                          f"_p4_{prop4_scale}"
+                                                          f"_end_{guide_scale}"
+                                                          f"_baseline.csv")
+        save_csv(i, metric_base_infill, f"_dump/results/eff_{dataset}_{category}"
+                                                          f"_p1_{prop1_scale}"
+                                                          f"_p2_{prop2_scale}"
+                                                          f"_p3_{prop3_scale}"
+                                                          f"_p4_{prop4_scale}"
+                                                          f"_end_{guide_scale}"
+                                                          f"_baseline_infill.csv")
+        save_csv(i, metric_ours, f"_dump/results/eff_{dataset}_{category}"
+                                                          f"_p1_{prop1_scale}"
+                                                          f"_p2_{prop2_scale}"
+                                                          f"_p3_{prop3_scale}"
+                                                          f"_p4_{prop4_scale}"
+                                                          f"_end_{guide_scale}"
+                                                          f"_guided.csv")
+        metrics_base.append(metric_base)
+        metrics_ours.append(metric_ours)
+        cnt += 1
+        if cnt == 0:
+            break
+       
+        torch.cuda.empty_cache()
+        
+
+def get_ts_threshold(model, train_dataloader, test_dataloader, dataset="swat", model_name="gpt2"):
     attens_energy = []
     ### code adapted from https://github.com/DAMO-DI-ML/NeurIPS2023-One-Fits-All/blob/main/Anomaly_Detection/exp/exp_anomaly_detection.py
     with torch.no_grad():
-        for i, (batch_x, batch_y, batch_m) in enumerate(train_dataloader):
+        for i, (batch_x, batch_y, batch_m) in enumerate(tqdm(train_dataloader)):
+            if i > 1000:
+                break
+
             batch_x = batch_x.float().cuda()
             # reconstruction
             outputs = model(batch_x)
@@ -254,7 +391,9 @@ def get_ts_threshold(model, train_dataloader, test_dataloader):
     train_energy = np.array(attens_energy)
     attens_energy = []
     test_labels = []
-    for batch in tqdm(test_dataloader):
+    for i, batch in enumerate(tqdm(test_dataloader)):
+        if i > 1000:
+            break
         x, y, _  = batch
         x = x.cuda()
         outputs = model(x)
@@ -268,7 +407,7 @@ def get_ts_threshold(model, train_dataloader, test_dataloader):
     combined_energy = np.concatenate([train_energy, test_energy], axis=0)
     threshold = torch.tensor(np.percentile(combined_energy, 99, axis=0))
     # pred = (attens_energy > threshold).long()
-    torch.save(threshold, "_dump/swat/threshold.pt")
+    torch.save(threshold,f"_dump/{dataset}_threshold_{model_name}.pt")
     return threshold
 
 def plot_ts(x, y, idx, fp):
@@ -292,8 +431,7 @@ def plot_ts(x, y, idx, fp):
     ax1.legend(lines , labels, loc='upper left')
     plt.savefig(fp)
 
-
-def eval_time_property_improvement(
+def eval_time_property_improvement_llama(
         dataset, 
         window_size=100, 
         batch_size=16, 
@@ -308,22 +446,29 @@ def eval_time_property_improvement(
     "coef": 1e-2,
     "learning_rate": 5e-2
 }
+    if dataset == "wadi":
+        num_features = 127
+    elif dataset == "swat":
+        num_features = 51
+    else:
+        num_features = 86
     # load fixer
-    path = "/home/antonxue/foo/arpro/_dump/fixer_ts_diffusion_swat_best.pt"
-    mytsdiff = MyTimeDiffusionModel(feature_dim=51, window_size=window_size)
+    path = f"/home/antonxue/foo/arpro/_dump/fixer_ts_diffusion_{dataset}_best.pt"
+    mytsdiff = MyTimeDiffusionModel(feature_dim=num_features, window_size=window_size)
     model_dict = torch.load(path)['model_state_dict']
     mytsdiff.load_state_dict(model_dict)
     mytsdiff.eval().cuda();
 
     # load ad
-    ad = GPT2ADModel()
-    path = '/home/antonxue/foo/arpro/_dump/ad_gpt2_swat_best.pt'
+    ad = Llama2ADModel(num_features=num_features)
+    path = f'/home/antonxue/foo/arpro/_dump/ad_llama2_{dataset}_best.pt'
     model_dict = torch.load(path)['model_state_dict']
     ad.load_state_dict(model_dict)
     ad.eval().cuda();
 
     # load dataloader
-    time_ds = get_timeseries_bundle(ds_name="swat", label_choice = 'all', shuffle=False, test_batch_size=batch_size, train_has_only_goods=True)
+    time_ds = get_timeseries_bundle(ds_name=dataset, label_choice = 'all', shuffle=False, test_batch_size=batch_size, train_has_only_goods=True)
+    train_dataloader = time_ds['train_dataloader']
     test_dataloader = time_ds['test_dataloader'] 
     time_config = TimeRepairConfig(lr=1e-5, 
                                    batch_size=batch_size, 
@@ -341,8 +486,127 @@ def eval_time_property_improvement(
                                    prop4_scale=prop4_scale,
                                    guide_scale=0.0
                                    )
-    # threshold = get_ts_threshold(ad, train_dataloader, test_dataloader)
-    threshold = torch.load("_dump/swat/threshold.pt")
+    print("getting threshold")
+    # threshold = get_ts_threshold(ad, train_dataloader, test_dataloader, dataset, "llama2")
+    threshold = torch.load(f"_dump/{dataset}_threshold_llama2.pt")
+    # value: 0.00017069593071937592
+
+    metrics_base = []
+    metrics_ours = []
+    for i, batch in enumerate(tqdm(test_dataloader)):
+        x, y, m  = batch
+        if y.sum() == 0:
+            continue
+        
+        x_bad = x.cuda()
+        x_bad_ad_out = ad(x_bad)
+        anom_parts = (x_bad_ad_out.alpha > threshold.cuda()).long()
+        good_parts = (1 - anom_parts).long()
+
+        # guided
+        guided_ret = time_repair(x_bad, anom_parts, ad, mytsdiff, time_config, noise_level, num_inference_steps=num_inference_steps)
+        x_fix = guided_ret['x_fix']
+        x_fix_ad_out = ad(x_fix)
+
+        # baseline
+        x_fix_baseline = mytsdiff.repair(x_bad, x_bad * good_parts, good_parts, model_kwargs=model_kwargs, noise_level=noise_level, num_inference_steps=num_inference_steps)
+        x_fix_baseline_ad_out = ad(x_fix_baseline)
+        # # guided
+        # base_ret = time_repair(x_bad, anom_parts, ad, mytsdiff, base_config, noise_level, num_inference_steps=num_inference_steps)
+        # x_fix_baseline = base_ret['x_fix']
+        # x_fix_baseline_ad_out = ad(x_fix_baseline)
+
+        x_fix_baseline = x_fix_baseline.detach().cpu()
+        x_fix_baseline_ad_out = detach(x_fix_baseline_ad_out)
+        x_bad = x_bad.detach().cpu()
+        x_bad_ad_out = detach(x_bad_ad_out)
+        x_fix = x_fix.detach().cpu()
+        x_fix_ad_out = detach(x_fix_ad_out)
+        anom_parts = anom_parts.detach().cpu()
+        good_parts = good_parts.detach().cpu()
+
+        metric_base = property_metrics(x_fix_baseline, x_fix_baseline_ad_out, x_bad, x_bad_ad_out, good_parts, anom_parts)
+        metric_ours = property_metrics(x_fix, x_fix_ad_out, x_bad, x_bad_ad_out, good_parts, anom_parts)
+        save_csv(i, metric_base,   f"_dump/results/llama_{dataset}_p1_{prop1_scale}"
+                                                          f"_p2_{prop2_scale}"
+                                                          f"_p3_{prop3_scale}"
+                                                          f"_p4_{prop4_scale}"
+                                                          f"_end_{guide_scale}"
+                                                          f"_steps_{num_inference_steps}"
+                                                          f"_baseline.csv")
+        save_csv(i, metric_ours,   f"_dump/results/llama_{dataset}_p1_{prop1_scale}"
+                                                          f"_p2_{prop2_scale}"
+                                                          f"_p3_{prop3_scale}"
+                                                          f"_p4_{prop4_scale}"
+                                                          f"_end_{guide_scale}"
+                                                          f"_steps_{num_inference_steps}"
+                                                          f"_guided.csv")
+        metrics_base.append(metric_base)
+        metrics_ours.append(metric_ours)
+        torch.cuda.empty_cache()
+
+        mask = (m == 1).any(dim=1).any(dim=0)
+        anom_channels = torch.nonzero(mask, as_tuple=True)[0]
+        for idx in anom_channels:
+            plot_timeseries(i, y, x_bad, x_fix, x_fix_baseline, idx, model_name="llama2")
+
+def eval_time_property_improvement(
+        dataset, 
+        window_size=100, 
+        batch_size=16, 
+        noise_level=500, 
+        prop1_scale=0.1,
+        prop2_scale=0.1,
+        prop3_scale=1.0,
+        prop4_scale=1.0,
+        guide_scale=0.1,
+        num_inference_steps=200):
+    model_kwargs = {
+    "coef": 1e-2,
+    "learning_rate": 5e-2
+}
+    if dataset == "wadi":
+        num_features = 127
+    elif dataset == "swat":
+        num_features = 51
+    else:
+        num_features = 86
+    # load fixer
+    path = f"/home/antonxue/foo/arpro/_dump/fixer_ts_diffusion_{dataset}_best.pt"
+    mytsdiff = MyTimeDiffusionModel(feature_dim=num_features, window_size=window_size)
+    model_dict = torch.load(path)['model_state_dict']
+    mytsdiff.load_state_dict(model_dict)
+    mytsdiff.eval().cuda();
+
+    # load ad
+    ad = GPT2ADModel(num_features=num_features)
+    path = f'/home/antonxue/foo/arpro/_dump/ad_gpt2_{dataset}_best.pt'
+    model_dict = torch.load(path)['model_state_dict']
+    ad.load_state_dict(model_dict)
+    ad.eval().cuda();
+
+    # load dataloader
+    time_ds = get_timeseries_bundle(ds_name=dataset, label_choice = 'all', shuffle=False, test_batch_size=batch_size, train_has_only_goods=True)
+    train_dataloader = time_ds['train_dataloader'] 
+    test_dataloader = time_ds['test_dataloader'] 
+    time_config = TimeRepairConfig(lr=1e-5, 
+                                   batch_size=batch_size, 
+                                   prop1_scale=prop1_scale, 
+                                   prop2_scale=prop2_scale,
+                                   prop3_scale=prop3_scale,
+                                   prop4_scale=prop4_scale,
+                                   guide_scale=guide_scale
+                                   )
+    base_config =  TimeRepairConfig(lr=1e-5, 
+                                   batch_size=batch_size, 
+                                   prop1_scale=prop1_scale, 
+                                   prop2_scale=prop2_scale,
+                                   prop3_scale=prop3_scale,
+                                   prop4_scale=prop4_scale,
+                                   guide_scale=0.0
+                                   )
+    # threshold = get_ts_threshold(ad, train_dataloader, test_dataloader, dataset, "gpt2")
+    threshold = torch.load(f"_dump/{dataset}_threshold_gpt2.pt")
     # value: 0.00017069593071937592
 
     metrics_base = []
@@ -513,6 +777,7 @@ def eval_text_property_improvement(
 
 
 def compute_stats(
+        model,
         dataset, 
         category=None,
         prop1_scale=1.0,
@@ -522,36 +787,68 @@ def compute_stats(
         guide_scale=10.0,
         steps=500):
     columns = ['m1', 'm2', 'm3', 'm4']
-    if dataset == "swat" or dataset == "webtext":
-        base_path = (f"_dump/results/{dataset}_p1_{prop1_scale}"
-                                            f"_p2_{prop2_scale}"
-                                            f"_p3_{prop3_scale}"
-                                            f"_p4_{prop4_scale}"
-                                            f"_end_{guide_scale}"
-                                            f"_steps_{steps}"
-                                            f"_baseline.csv")
-        guided_path = (f"_dump/results/{dataset}_p1_{prop1_scale}"
-                                            f"_p2_{prop2_scale}"
-                                            f"_p3_{prop3_scale}"
-                                            f"_p4_{prop4_scale}"
-                                            f"_end_{guide_scale}"
-                                            f"_steps_{steps}"
-                                            f"_guided.csv")
-    elif dataset == "visa":
-        base_path = (f"_dump/results/{dataset}_{category}"
-                                            f"_p1_{prop1_scale}"
-                                            f"_p2_{prop2_scale}"
-                                            f"_p3_{prop3_scale}"
-                                            f"_p4_{prop4_scale}"
-                                            f"_end_{guide_scale}"
-                                            f"_baseline.csv")
-        guided_path = (f"_dump/results/{dataset}_{category}"
-                                            f"_p1_{prop1_scale}"
-                                            f"_p2_{prop2_scale}"
-                                            f"_p3_{prop3_scale}"
-                                            f"_p4_{prop4_scale}"
-                                            f"_end_{guide_scale}"
-                                            f"_guided.csv")
+    if dataset == "swat" or dataset == "wadi" or dataset == "hai":
+        if model == "llama":
+            base_path = (f"_dump/results/llama_{dataset}_p1_{prop1_scale}"
+                                                f"_p2_{prop2_scale}"
+                                                f"_p3_{prop3_scale}"
+                                                f"_p4_{prop4_scale}"
+                                                f"_end_{guide_scale}"
+                                                f"_steps_{steps}"
+                                                f"_baseline.csv")
+            guided_path = (f"_dump/results/llama_{dataset}_p1_{prop1_scale}"
+                                                f"_p2_{prop2_scale}"
+                                                f"_p3_{prop3_scale}"
+                                                f"_p4_{prop4_scale}"
+                                                f"_end_{guide_scale}"
+                                                f"_steps_{steps}"
+                                                f"_guided.csv")
+        else:
+            base_path = (f"_dump/results/{dataset}_p1_{prop1_scale}"
+                                                f"_p2_{prop2_scale}"
+                                                f"_p3_{prop3_scale}"
+                                                f"_p4_{prop4_scale}"
+                                                f"_end_{guide_scale}"
+                                                f"_steps_{steps}"
+                                                f"_baseline.csv")
+            guided_path = (f"_dump/results/{dataset}_p1_{prop1_scale}"
+                                                f"_p2_{prop2_scale}"
+                                                f"_p3_{prop3_scale}"
+                                                f"_p4_{prop4_scale}"
+                                                f"_end_{guide_scale}"
+                                                f"_steps_{steps}"
+                                                f"_guided.csv")
+    elif dataset == "visa" or dataset == "mvtec":
+        if model == "eff":
+            base_path = (f"_dump/results/eff_{dataset}_{category}"
+                                                f"_p1_{prop1_scale}"
+                                                f"_p2_{prop2_scale}"
+                                                f"_p3_{prop3_scale}"
+                                                f"_p4_{prop4_scale}"
+                                                f"_end_{guide_scale}"
+                                                f"_baseline.csv")
+            guided_path = (f"_dump/results/eff_{dataset}_{category}"
+                                                f"_p1_{prop1_scale}"
+                                                f"_p2_{prop2_scale}"
+                                                f"_p3_{prop3_scale}"
+                                                f"_p4_{prop4_scale}"
+                                                f"_end_{guide_scale}"
+                                                f"_guided.csv")
+        else:
+            base_path = (f"_dump/results/{dataset}_{category}"
+                                                f"_p1_{prop1_scale}"
+                                                f"_p2_{prop2_scale}"
+                                                f"_p3_{prop3_scale}"
+                                                f"_p4_{prop4_scale}"
+                                                f"_end_{guide_scale}"
+                                                f"_baseline.csv")
+            guided_path = (f"_dump/results/{dataset}_{category}"
+                                                f"_p1_{prop1_scale}"
+                                                f"_p2_{prop2_scale}"
+                                                f"_p3_{prop3_scale}"
+                                                f"_p4_{prop4_scale}"
+                                                f"_end_{guide_scale}"
+                                                f"_guided.csv")
         
     baseline_df = pd.read_csv(base_path, index_col=0, names=columns)
     guided_df = pd.read_csv(guided_path, index_col=0, names=columns)
@@ -626,16 +923,39 @@ def box_plots(dataset, category):
 # # Save the DataFrame to a CSV file
 # output_path = '_dump/results/visa_medians.csv'
 # df.to_csv(output_path, index=False)
-def compute_delta():
+def compute_delta_visa(model):
     bms, gms = [], []
     for cat in VISA_CATEGORIES:
-        bmu, gmu = compute_stats("visa", cat)
-        bms.append(bmu)
-        gms.append(gmu)
+        try: 
+            bmu, gmu = compute_stats(model, "visa", cat, guide_scale=0.01)
+            bms.append(bmu)
+            gms.append(gmu)
+        except:
+            continue
     deltas = {}
     for i in range(4):
         m = []
-        for j in range(12):
+        for j in range(len(bms)):
+            baseline = bms[j].iloc[i] 
+            guided = gms[j].iloc[i]
+            delta = (baseline - guided) / np.abs(baseline)
+            m.append(delta)
+        deltas[i] = np.median(m)
+    return deltas
+
+def compute_delta_mvtec(model):
+    bms, gms = [], []
+    for cat in MVTEC_CATEGORIES:
+        try:
+            bmu, gmu = compute_stats(model, "mvtec", cat, guide_scale=0.01)
+            bms.append(bmu)
+            gms.append(gmu)
+        except:
+            continue
+    deltas = {}
+    for i in range(4):
+        m = []
+        for j in range(len(bms)):
             baseline = bms[j].iloc[i] 
             guided = gms[j].iloc[i]
             delta = (baseline - guided) / np.abs(baseline)

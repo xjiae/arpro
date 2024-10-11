@@ -15,12 +15,13 @@ from tqdm import tqdm
 import wandb
 
 from .models import EfficientAdADModel
-from datasets import get_ad_dataloader
+from mydatasets import get_ad_dataloader
 
 
 @dataclass
 class TrainADVaeConfig:
     mvtec_category: str
+    dataset: str
     num_epochs: int = 50000
     lr: float = 0.0001
     batch_size: int = 1
@@ -157,14 +158,14 @@ def train_ad_efficient_ad(config: TrainADVaeConfig):
     imagenet_iterator, imagenet_loader = prepare_imagenette_data(config.image_size, config.imagenette_dir)
 
     train_dataloader = get_ad_dataloader(
-        dataset_name = "mvtec",
+        dataset_name = config.dataset,
         batch_size = config.batch_size,
         category = config.mvtec_category,
         split = "train"
     )
 
     eval_dataloader = get_ad_dataloader(
-        dataset_name = "mvtec",
+        dataset_name = config.dataset,
         batch_size = config.batch_size,
         category = config.mvtec_category,
         split = "test"
@@ -187,7 +188,7 @@ def train_ad_efficient_ad(config: TrainADVaeConfig):
         milestones = [warmup_epochs]
     )
 
-    run_name = f"ad_eff_mvtec_{config.mvtec_category}"
+    run_name = f"ad_eff_{config.dataset}_{config.mvtec_category}"
 
     if config.do_save:
         assert config.output_dir is not None and Path(config.output_dir).is_dir()
@@ -244,12 +245,12 @@ def train_ad_efficient_ad(config: TrainADVaeConfig):
 
 
 def init_and_train_ad_efficient_ad(args):
-    assert args.model_name == "efficientad"
-    assert args.dataset_name == "mvtec"
+    assert args.model == "efficientad"
+    # assert args.dataset == "mvtec"
     config = TrainADVaeConfig(
-        num_epochs = args.num_epochs,
+        num_epochs = args.epochs,
         lr = args.lr,
-        mvtec_category = args.mvtec_category,
+        mvtec_category = args.category,
         batch_size = args.batch_size,
         device = args.device,
         output_dir = args.output_dir,
@@ -257,7 +258,8 @@ def init_and_train_ad_efficient_ad(args):
         kldiv_scale = args.kldiv_scale,
         contrastive_scale = args.contrast_scale,
         imagenette_dir = args.efficientad_imagenette_dir,
-        pretrained_dir= args.efficientad_pretrained_download_dir
+        pretrained_dir= args.efficientad_pretrained_download_dir,
+        dataset=args.dataset
     )
     
     train_ret = train_ad_efficient_ad(config)

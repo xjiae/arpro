@@ -13,7 +13,7 @@ from tqdm import tqdm
 import wandb
 
 from .models import FastflowAdModel
-from datasets import get_ad_dataloader
+from mydatasets import get_ad_dataloader
 
 
 @dataclass
@@ -49,6 +49,8 @@ def run_one_epoch(
     num_dones, acc_loss = 0, 0.
     pbar = tqdm(dataloader)
     for i, batch in enumerate(pbar):
+        if batch['image'].size(1) == 1:
+            batch['image'] = batch['image'].repeat(1, 3, 1, 1)
         x = batch["image"].to(device)
         x = 2*x - 1 # Scale to [-1,+1]
 

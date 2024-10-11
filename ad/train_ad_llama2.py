@@ -10,11 +10,11 @@ import torch.nn.functional as F
 from dataclasses import dataclass
 from torch.optim.lr_scheduler import LinearLR, SequentialLR
 
-from .models import GPT2ADModel
+from .models import Llama2ADModel
 from mydatasets import get_timeseries_bundle
 
 @dataclass
-class TrainADGPT2Config:
+class TrainADLlama2Config:
     num_epochs: int
     lr: float
     batch_size: int
@@ -24,13 +24,13 @@ class TrainADGPT2Config:
     warmup_ratio: float = 0.1
     eval_every: int = 5
     wandb_project: str = "arpro"
-    dataset: str = "swat"
+    dataset: str = "wadi"
 
 def run_one_epoch(
     model,
     dataloader,
     train_or_eval: str,
-    config: TrainADGPT2Config,
+    config: TrainADLlama2Config,
     optimizer = None,
 ):
     assert train_or_eval in ["train", "eval"]
@@ -48,9 +48,11 @@ def run_one_epoch(
             loss = F.mse_loss(x_recon, x) * x.size(-1) * x.size(-2)
             if train_or_eval == "train":
                 loss.backward()
+
                 optimizer.step()
                 optimizer.zero_grad()
 
+        loss = loss.detach().cpu().item()
         num_dones += x.size(0)
         acc_loss += loss * x.size(0)
         avg_loss = acc_loss / num_dones
@@ -66,20 +68,21 @@ def run_one_epoch(
             wandb.log({
                 "eval_loss": avg_loss
             })
+       
 
     return {
         "model": model,
         "loss": avg_loss
     }
 
-def train_ad_gpt2(config: TrainADGPT2Config):
+def train_ad_llama2(config: TrainADLlama2Config):
     if config.dataset == "wadi":
         num_features = 127
     elif config.dataset == "swat":
         num_features = 51
     else:
         num_features = 86
-    model = GPT2ADModel(num_features=num_features)
+    model = Llama2ADModel(num_features=num_features)
     if config.device is not None:
         model.to(config.device)
     ret = get_timeseries_bundle(ds_name=config.dataset,
@@ -106,7 +109,7 @@ def train_ad_gpt2(config: TrainADGPT2Config):
         ],
         milestones = [warmup_epochs]
     )
-    run_name = f"ad_gpt2_{config.dataset}"
+    run_name = f"ad_llama2_{config.dataset}"
     if config.do_save:
         assert config.output_dir is not None and Path(config.output_dir).is_dir()
         last_saveto = str(Path(config.output_dir, run_name + "_last.pt"))
@@ -159,10 +162,10 @@ def train_ad_gpt2(config: TrainADGPT2Config):
     wandb.finish()
     return best_save_dict
 
-def init_and_train_ad_gpt2(args):
-    assert args.model == "gpt2"
+def init_and_train_ad_llama2(args):
+    assert args.model == "llama2"
     # assert args.dataset == "swat"
-    config = TrainADGPT2Config(
+    config = TrainADLlama2Config(
         num_epochs = args.epochs,
         lr = args.lr,
         batch_size = args.batch_size,
@@ -170,5 +173,5 @@ def init_and_train_ad_gpt2(args):
         output_dir = args.output_dir,
         dataset = args.dataset
     )
-    train_ret = train_ad_gpt2(config)
+    train_ret = train_ad_llama2(config)
     return train_ret

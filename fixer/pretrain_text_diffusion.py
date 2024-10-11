@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from tqdm import tqdm
 
 from .models import MyTextDiffusionModel
-from datasets import get_fixer_dataloader
+from mydatasets import get_fixer_dataloader
 
 
 @dataclass

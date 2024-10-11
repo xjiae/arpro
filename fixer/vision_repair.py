@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from dataclasses import dataclass
 
 from ad import *
-from datasets import *
+from mydatasets import *
 from fixer.models.vision import *
 
 sys.path.insert(0, "..")
@@ -62,7 +62,6 @@ def vision_repair(
     cum_prop_loss = 0.0
     cum_L1, cum_L2, cum_L3, cum_L4 = 0.0, 0.0, 0.0, 0.0
     pbar = tqdm(mydiff_model.scheduler.timesteps)
-
     for t in pbar: # This is already reversed from 999, 998, ..., 1, 0
         # if guide_scale > 0, then we use our properties
         guide_vec = torch.zeros_like(x_fix)

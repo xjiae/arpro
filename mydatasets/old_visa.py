@@ -6,16 +6,10 @@ from typing import Optional
 from torch.utils.data import Dataset, DataLoader, Subset, ConcatDataset, \
     random_split
 
-""" Hacky method for setting paths while we work on this """
-
-username = pwd.getpwuid(os.getuid()).pw_name
-
 ### replace the paths with the directory to the dataset folder
-EXLIB_PATH = "../exlib/src/"
-VISA_DIR = "../data/visa/1cls"
 
-sys.path.append(EXLIB_PATH)
-from exlib.datasets.visa import VisA
+sys.path.insert(0,"/home/antonxue/foo/exlib/src/exlib/datasets")
+import visa
 
 VISA_CATEGORIES = ['candle', 
                    'capsules', 
@@ -38,12 +32,10 @@ class VisADataset(Dataset):
     def __init__(
         self,
         category: str,
-        visa_dir: str = VISA_DIR,
         split = "train",
-        **kwargs
+        image_size: int = 256,
     ):
-        assert os.path.isdir(VISA_DIR)
-        self.visa_dataset = VisA(visa_dir, category, split=split, **kwargs)
+        self.visa_dataset = visa.VisADataset(category, split=split, image_size=image_size)
 
     def __len__(self):
         return len(self.visa_dataset)

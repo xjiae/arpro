@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from datasets import *
+from mydatasets import *
 from fixer import *
 from ad.models import *
 
@@ -58,6 +58,9 @@ if __name__ == "__main__":
 
     elif args.ad_model== "fastflow":
         init_and_train_fixer_fastflow(args)
+
+    elif args.ad_model== "efficientad":
+        init_and_train_fixer_efficientad(args)
 
     
 

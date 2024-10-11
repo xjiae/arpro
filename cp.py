@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from ad import *
-from datasets import *
+from mydatasets import *
 
 
 def get_ood_error(

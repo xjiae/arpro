@@ -13,7 +13,7 @@ from .models import VaeFixerModel
 from ad.models.vision import VaeADModel
 
 from .image_utils import *
-from datasets import get_fixer_dataloader
+from mydatasets import get_fixer_dataloader
 
 @dataclass
 class TrainFixerVaeConfig:

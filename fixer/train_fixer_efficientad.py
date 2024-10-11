@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import wandb
 from .models import VaeFixerModel
-from ad.models.vision import FastflowAdModel
-
+# from ad.models.vision import FastflowAdModel
+from ad.models.vision import EfficientAdADModel
+from ad.train_ad_efficientad import *
 from .image_utils import *
 from mydatasets import get_fixer_dataloader
 
@@ -46,6 +47,8 @@ def run_one_epoch(
     fixer_model,
     ad_model,
     dataloader,
+    imagenet_iterator,
+    imagenet_loader,
     train_or_eval: str,
     config: TrainFixerVaeConfig,
     optimizer = None,
@@ -68,13 +71,19 @@ def run_one_epoch(
         x = 2*x - 1
         N, C, H, W = x.shape
 
-
+        try:
+            # infinite dataloader; [0] getting the image not the label
+            batch_imagenet = next(imagenet_iterator)[0].to(config.device)
+        except StopIteration:
+            imagenet_iterator = iter(imagenet_loader)
+            batch_imagenet = next(imagenet_iterator)[0].to(config.device)
         # Either way, we need information about the ad_out(x)
         with torch.no_grad():
-            ad_out = ad_model(x)
+            ad_out = ad_model(x, batch_imagenet)
 
         # Because every training point is "good", we need to artificially break stuff
         if train_or_eval == "train":
+            
             q_lo, q_hi = config.black_q_range
             q = ((q_hi - q_lo) * torch.rand(()) + q_lo).to(x.device)
             anom_parts = make_blobs(N, H, W, q=q, device=x.device)
@@ -118,7 +127,7 @@ def run_one_epoch(
                 plt.savefig(f"{config.output_dir}/fixer_train_img/train{idx}.png")
                 plt.close()
             x_fix, mu, logvar = fixer_out.x_fix, fixer_out.others["mu"], fixer_out.others["logvar"]
-            x_fix_ad_out = ad_model(x_fix) # Need to evaluate the ad_model on this thing
+            x_fix_ad_out = ad_model(x_fix, batch_imagenet) # Need to evaluate the ad_model on this thing
 
             total_recon_loss = F.mse_loss(x, x_fix) * config.recon_scale
             kldiv_loss = (-0.5 * torch.mean(1 + logvar - (mu**2) - logvar.exp())) * config.kldiv_scale
@@ -186,12 +195,19 @@ def run_one_epoch(
     }
 
 
-def train_fixer_fastflow(config: TrainFixerVaeConfig):
+def train_fixer_efficientad(config: TrainFixerVaeConfig):
     """ Set up the models, dataloaders, etc """
     fixer_model = VaeFixerModel(image_channels=config.image_channels)
 
     # Load the AD Model
-    ad_model = FastflowAdModel()
+    ad_model = EfficientAdADModel(model_size="medium")
+    if config.device is not None:
+        ad_model.to(config.device)
+    teacher_path = prepare_pretrained_model(config.pretrained_dir)
+    ad_model.teacher.load_state_dict(torch.load(teacher_path, map_location=torch.device(config.device)))
+    imagenet_iterator, imagenet_loader = prepare_imagenette_data(config.image_size, config.imagenette_dir)
+
+    # ad_model = FastflowAdModel()
     ad_model.load_state_dict(torch.load(config.ad_model_path)["model_state_dict"])
     ad_model.eval()
 
@@ -230,7 +246,7 @@ def train_fixer_fastflow(config: TrainFixerVaeConfig):
         milestones = [warmup_epochs]
     )
 
-    run_name = f"fixer_fast_{config.dataset}_{config.category}"
+    run_name = f"fixer_eff_{config.dataset}_{config.category}"
 
     if config.do_save:
         assert config.output_dir is not None and Path(config.output_dir).is_dir()
@@ -252,7 +268,14 @@ def train_fixer_fastflow(config: TrainFixerVaeConfig):
 
     for epoch in range(1, config.num_epochs+1):
         print(f"epoch: {epoch}/{config.num_epochs}, lr: {lr_scheduler.get_last_lr()[0]:.6f}")
-        train_stats = run_one_epoch(fixer_model, ad_model, train_dataloader, "train", config, optimizer)
+        train_stats = run_one_epoch(fixer_model, 
+                                    ad_model, 
+                                    train_dataloader, 
+                                    imagenet_iterator,
+                                    imagenet_loader,
+                                    "train", 
+                                    config, 
+                                    optimizer)
         wandb.log({
             "learning_rate": lr_scheduler.get_last_lr()[0]
         })
@@ -285,10 +308,10 @@ def train_fixer_fastflow(config: TrainFixerVaeConfig):
     return None
 
 
-def init_and_train_fixer_fastflow(args):
-    assert args.ad_model_name == "fastflow"
+def init_and_train_fixer_efficientad(args):
+    assert args.ad_model_name == "efficientad"
 
-    ad_model_path = Path(args.output_dir, f"ad_noisy_fast_{args.dataset}_{args.category}_best.pt")
+    ad_model_path = Path(args.output_dir, f"ad_eff_{args.dataset}_{args.category}_best.pt")
 
     config = TrainFixerVaeConfig(
         dataset = args.dataset,
@@ -302,6 +325,6 @@ def init_and_train_fixer_fastflow(args):
         image_size=args.image_size
     )
 
-    train_ret = train_fixer_fastflow(config)
+    train_ret = train_fixer_efficientad(config)
     return train_ret
 

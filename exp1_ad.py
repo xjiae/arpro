@@ -6,7 +6,7 @@ from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import accuracy_score
 ### report the anomaly detector performance
 from ad.models import *
-from datasets import *
+from mydatasets import *
 
 '''(image AUROC, pixel AUROC)'''
 

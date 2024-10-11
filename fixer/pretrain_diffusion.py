@@ -11,7 +11,7 @@ from torchvision import transforms
 from torch.optim.lr_scheduler import LinearLR, SequentialLR
 
 from .models import MyDiffusionModel
-from datasets import get_fixer_dataloader
+from mydatasets import get_fixer_dataloader
 
 
 @dataclass
@@ -46,6 +46,8 @@ def run_one_epoch(
 
     for batch in pbar:
         # Sample a random time step for each image
+        if batch['image'].size(1) == 1:
+            batch['image'] = batch['image'].repeat(1, 3, 1, 1)
         x = batch["image"].to(device)
         x = 2*x - 1  # Scale a [0,1] image to [-1,+1]
         noise = torch.randn_like(x)
