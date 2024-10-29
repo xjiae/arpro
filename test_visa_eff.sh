@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VISA_CATEGORIES=('pcb2' 'pcb3' 'pcb4' 'fryum' 'macaroni1' 'macaroni2'  'capsules' 'chewinggum' 'candle' 'cashew' 'pipe_fryum' 'pcb1' )
-
+# VISA_CATEGORIES=('pcb2' 'pcb3' 'pcb4' 'fryum' 'macaroni1' 'macaroni2'  'capsules' 'chewinggum' 'candle' 'cashew' 'pipe_fryum' 'pcb1' )
+VISA_CATEGORIES=('capsules' 'macaroni2')
 # Loop through each category and run the training command
 for category in "${VISA_CATEGORIES[@]}"
 do

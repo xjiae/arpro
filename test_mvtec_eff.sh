@@ -1,7 +1,7 @@
 #!/bin/bash
 
-MVTEC_CATEGORIES=("transistor" "cable" "capsule" "carpet" "grid" "hazelnut" "leather" "metal_nut" "pill" "screw" "tile" "toothbrush" "wood" "zipper" "bottle" )
-
+# MVTEC_CATEGORIES=("transistor" "cable" "capsule" "carpet" "grid" "hazelnut" "leather" "metal_nut" "pill" "screw" "tile" "toothbrush" "wood" "zipper" "bottle" )
+MVTEC_CATEGORIES=("grid" "screw" "zipper")
 # Loop through each category and run the training command
 for category in "${MVTEC_CATEGORIES[@]}"
 do

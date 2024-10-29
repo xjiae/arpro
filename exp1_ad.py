@@ -8,6 +8,38 @@ from sklearn.metrics import accuracy_score
 from ad.models import *
 from mydatasets import *
 
+
+MVTEC_CATEGORIES = [
+    "bottle",
+    "cable",
+    "capsule",
+    "carpet",
+    "grid",
+    "hazelnut",
+    "leather",
+    "metal_nut",
+    "pill",
+    "screw",
+    "tile",
+    "toothbrush",
+    "transistor",
+    "wood",
+    "zipper",
+]
+
+VISA_CATEGORIES = ['candle', 
+                   'capsules', 
+                   'cashew', 
+                   'chewinggum', 
+                   'fryum', 
+                   'macaroni1', 
+                   'macaroni2', 
+                   'pcb1', 
+                   'pcb2',
+                   'pcb3', 
+                   'pcb4', 
+                   'pipe_fryum']
+
 '''(image AUROC, pixel AUROC)'''
 
 def eval(dataset, category, image_size, batch_size):

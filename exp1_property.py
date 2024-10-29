@@ -10,6 +10,38 @@ from ad.models import *
 from fixer import *
 from mydatasets import *
 
+
+MVTEC_CATEGORIES = [
+    "bottle",
+    "cable",
+    "capsule",
+    "carpet",
+    "grid",
+    "hazelnut",
+    "leather",
+    "metal_nut",
+    "pill",
+    "screw",
+    "tile",
+    "toothbrush",
+    "transistor",
+    "wood",
+    "zipper",
+]
+
+VISA_CATEGORIES = ['candle', 
+                   'capsules', 
+                   'cashew', 
+                   'chewinggum', 
+                   'fryum', 
+                   'macaroni1', 
+                   'macaroni2', 
+                   'pcb1', 
+                   'pcb2',
+                   'pcb3', 
+                   'pcb4', 
+                   'pipe_fryum']
+
 def sample(dataloader, num_samples=50):
     dataset = dataloader.dataset
     indices = np.random.permutation(len(dataset))[:num_samples]
@@ -168,6 +200,8 @@ def eval_image_property_improvement(
             continue
         x_bad, y, m = batch['image'][bad_idxs], batch['label'][bad_idxs], batch['mask'][bad_idxs]
         x_bad = (2*x_bad-1).cuda()
+        if x_bad.size(1) == 1:
+            x_bad = x_bad.repeat(1, 3, 1, 1)
 
         x_bad_ad_out = ad(x_bad)
         anom_parts = (x_bad_ad_out.alpha > x_bad_ad_out.alpha.view(x_bad.size(0),-1).quantile(quantile,dim=1).view(-1,1,1,1)).long()
@@ -296,7 +330,8 @@ def eval_image_property_improvement_eff(
             continue
         x_bad, y, m = batch['image'][bad_idxs], batch['label'][bad_idxs], batch['mask'][bad_idxs]
         x_bad = (2*x_bad-1).cuda()
-
+        if x_bad.size(1) == 1:
+            x_bad = x_bad.repeat(1, 3, 1, 1)
         x_bad_ad_out = ad(x_bad)
         anom_parts = (x_bad_ad_out.alpha > x_bad_ad_out.alpha.view(x_bad.size(0),-1).quantile(quantile,dim=1).view(-1,1,1,1)).long()
         good_parts = 1 - anom_parts
@@ -372,7 +407,6 @@ def eval_image_property_improvement_eff(
 
 def get_ts_threshold(model, train_dataloader, test_dataloader, dataset="swat", model_name="gpt2"):
     attens_energy = []
-    ### code adapted from https://github.com/DAMO-DI-ML/NeurIPS2023-One-Fits-All/blob/main/Anomaly_Detection/exp/exp_anomaly_detection.py
     with torch.no_grad():
         for i, (batch_x, batch_y, batch_m) in enumerate(tqdm(train_dataloader)):
             if i > 1000:
@@ -858,7 +892,7 @@ def compute_stats(
 
     bstd = baseline_df.std()
     gstd = guided_df.std()
-    print(category)
+    print("& "+category)
     print(f" & {bmu.m1:.2f} $\pm$ {bstd.m1:.2f} "
           f" & {gmu.m1:.2f} $\pm$ {gstd.m1:.2f} "
           f" & {bmu.m2:.2f} $\pm$ {bstd.m2:.2f} "
@@ -923,6 +957,15 @@ def box_plots(dataset, category):
 # # Save the DataFrame to a CSV file
 # output_path = '_dump/results/visa_medians.csv'
 # df.to_csv(output_path, index=False)
+def print_median_deltas(deltas):
+    print(r"\midrule")
+    print(r"& $\Delta(\uparrow)$ "
+          r"& \multicolumn{2}{|c|}{\textbf{+" + f"{deltas[0]*100:.2f}" + r"\%}}"
+          r"& \multicolumn{2}{c|}{\textbf{+" + f"{deltas[1]*100:.2f}" + r"\%}}"
+          r"& \multicolumn{2}{c|}{\textbf{+" + f"{deltas[2]*100:.2f}" + r"\%}}"
+          r"& \multicolumn{2}{c}{\textbf{+" + f"{deltas[3]*100:.2f}" + r"\%}}  \\"
+          )
+
 def compute_delta_visa(model):
     bms, gms = [], []
     for cat in VISA_CATEGORIES:
@@ -941,6 +984,7 @@ def compute_delta_visa(model):
             delta = (baseline - guided) / np.abs(baseline)
             m.append(delta)
         deltas[i] = np.median(m)
+    print_median_deltas(deltas)
     return deltas
 
 def compute_delta_mvtec(model):
@@ -961,4 +1005,5 @@ def compute_delta_mvtec(model):
             delta = (baseline - guided) / np.abs(baseline)
             m.append(delta)
         deltas[i] = np.median(m)
+    print_median_deltas(deltas)
     return deltas
